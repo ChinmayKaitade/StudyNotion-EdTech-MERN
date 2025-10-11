@@ -4,6 +4,7 @@ const OTP = require("../models/OTP");
 const Profile = require("../models/Profile");
 const otpGenerator = require("otp-generator");
 const bcrypt = require("bcrypt"); // Used for secure password hashing
+const jwt = require("jsonwebtoken");
 
 // sendOTP (Existing function - comments retained for context)
 // ... (Your existing sendOTP function is here)
@@ -176,6 +177,83 @@ exports.signUp = async (req, res) => {
   }
 };
 
-// login
+// --------------------------------------------------------------------------------
+// LOG-IN CONTROLLER
+// --------------------------------------------------------------------------------
+/**
+ * @async
+ * @function login
+ * @description Controller function to handle user login and authentication.
+ * It verifies credentials, generates a JWT, and sets the token as an HTTP-only cookie
+ * to establish an authenticated session.
+ * @param {object} req - Express request object (expects 'email' and 'password' in req.body).
+ * @param {object} res - Express response object.
+ */
+exports.login = async (req, res) => {
+  try {
+    // 1. Destructure login credentials from the request body
+    const { email, password } = req.body; // 2. Validation: Check for missing credentials
+
+    if (!email || !password) {
+      return res.status(403).json({
+        success: false,
+        message: "All fields are required, try again later",
+      });
+    } // 3. Find the user by email // .populate("additionalDetails") fetches and includes the associated Profile data // in the user object for convenience.
+
+    const user = await User.findOne({ email }).populate("additionalDetails"); // 4. Check if the user exists
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User is not registered, Please Signup first",
+      });
+    } // 5. Verify the password // bcrypt.compare() compares the plain-text password with the stored hash
+
+    if (await bcrypt.compare(password, user.password)) {
+      // --- Authentication Success ---
+
+      // 6. Define JWT payload
+      // This data will be encoded in the token and used by middleware for authorization
+      const payload = {
+        email: user.email,
+        id: user._id, // NOTE: Assuming 'user.role' is correctly mapped from 'user.accountType' in your model logic
+        role: user.role,
+      }; // 7. Generate JWT
+
+      const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: "2h", // Set token expiration time (e.g., 2 hours)
+      }); // 8. Prepare user object for client response (Security measure)
+
+      user.token = token;
+      user.password = undefined; // Remove the sensitive password field // 9. Configure cookie options
+
+      const options = {
+        // Set cookie expiration (currently set to ~3 days)
+        expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        httpOnly: true, // Crucial security setting: prevents client-side JS from accessing the cookie
+      }; // 10. Set cookie and send final success response
+      res.cookie("token", token, options).status(200).json({
+        success: true,
+        token, // Optionally send token in body as well for client-side storage (e.g., Redux)
+        user,
+        message: "Logged in Successfully!👍",
+      });
+    } else {
+      // 5b. Password does not match
+      return res.status(401).json({
+        success: false,
+        message: "Incorrect Password!😓",
+      });
+    }
+  } catch (error) {
+    // Handle internal server errors
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Login Failure, Please try again",
+    });
+  }
+};
 
 // changePassword
