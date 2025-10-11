@@ -1,12 +1,17 @@
 const User = require("../models/User");
 const mailSender = require("../utils/mailSender");
-const crypto = require("crypto"); // NOTE: Added the necessary import for crypto module
+const crypto = require("crypto"); // Used for secure token generation (crypto.randomUUID)
+const bcrypt = require("bcrypt"); // Used for password hashing and security
+
+// --------------------------------------------------------------------------------
+// 📧 RESET PASSWORD TOKEN (Forgot Password - Step 1)
+// --------------------------------------------------------------------------------
 
 /**
  * @async
  * @function resetPasswordToken
  * @description Initiates the password reset process. It validates the user's email,
- * generates a temporary, unique token, sets an expiration time, saves these details
+ * generates a temporary, unique token, sets a 5-minute expiration time, saves these details
  * to the User model, and sends the password reset link to the user's email.
  * @param {object} req - Express request object (expects 'email' in req.body).
  * @param {object} res - Express response object.
@@ -23,7 +28,7 @@ exports.resetPasswordToken = async (req, res) => {
         success: false,
         message: "Your Email is not registered with us, Please Register",
       });
-    } // 3. Generate a unique, secure token using Node's crypto module
+    } // 3. Generate a unique, secure token
 
     const token = crypto.randomUUID(); // 4. Update user document with the new token and expiration time
 
@@ -38,7 +43,7 @@ exports.resetPasswordToken = async (req, res) => {
       }
     ); // 5. Create the password reset URL for the frontend
 
-    const url = `http://localhost:3000/update-password/${token}`; // NOTE: Use dynamic frontend URL in production // 6. Send the password reset email to the user
+    const url = `http://localhost:3000/update-password/${token}`; // 6. Send the password reset email to the user
 
     await mailSender(
       email,
@@ -61,4 +66,72 @@ exports.resetPasswordToken = async (req, res) => {
   }
 };
 
-// resetPassword
+// --------------------------------------------------------------------------------
+// 🔑 PASSWORD RESET (Forgot Password - Step 2)
+// --------------------------------------------------------------------------------
+
+/**
+ * @async
+ * @function resetPassword
+ * @description Completes the password reset process. It validates the token's existence and expiration,
+ * verifies the password confirmation, hashes the new password, and updates the user's document.
+ * @param {object} req - Express request object (expects password, confirmPassword, and token in req.body).
+ * @param {object} res - Express response object.
+ */
+exports.resetPassword = async (req, res) => {
+  try {
+    // 1. Extract necessary data from the request body
+    const { password, confirmPassword, token } = req.body; // 2. Validate password confirmation
+
+    if (password != confirmPassword) {
+      return res.status(401).json({
+        success: false,
+        message: "Password does not match",
+      });
+    } // 3. Find user by the token
+
+    const userDetails = await User.findOne({ token: token }); // 4. Validate token existence
+
+    if (!userDetails) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid Token",
+      });
+    } // 5. Validate token expiration time
+
+    if (userDetails.resetPasswordExpires < Date.now()) {
+      return res.status(401).json({
+        success: false,
+        message: "Token Expired, Please Re-generate your Token",
+      });
+    } // 6. Hash the new password for security
+
+    const hashedPassword = await bcrypt.hash(password, 10); // 7. Update the user's password in the database
+
+    await User.findOneAndUpdate(
+      {
+        token: token, // Query: Find the user using the valid token
+      },
+      {
+        password: hashedPassword, // Set the new hashed password // Clear the token and expiration fields immediately after use for security
+        token: null,
+        resetPasswordExpires: null,
+      },
+      {
+        new: true,
+      }
+    ); // 8. Return success response
+
+    return res.status(200).json({
+      success: true,
+      message: "Password Reset Successfully!👍",
+    });
+  } catch (error) {
+    // Handle server/database update failures
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong!😥 While processing password reset.",
+    });
+  }
+};
