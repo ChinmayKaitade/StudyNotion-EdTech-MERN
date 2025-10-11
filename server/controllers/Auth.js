@@ -218,7 +218,7 @@ exports.login = async (req, res) => {
       const payload = {
         email: user.email,
         id: user._id, // NOTE: Assuming 'user.role' is correctly mapped from 'user.accountType' in your model logic
-        role: user.role,
+        accountType: user.accountType,
       }; // 7. Generate JWT
 
       const token = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -257,3 +257,4 @@ exports.login = async (req, res) => {
 };
 
 // changePassword
+exports.changePassword = async (req, res) => {};
