@@ -51,8 +51,33 @@ exports.auth = async (req, res, next) => {
   }
 };
 
-// isStudent
+/**
+ * @async
+ * @function isStudent
+ * @description Express middleware function to restrict route access to 'Student' users only.
+ * It relies on the 'req.user' object being populated by a preceding authentication (JWT) middleware.
+ * @param {object} req - Express request object (expects req.user to contain accountType).
+ * @param {object} res - Express response object.
+ * @param {function} next - Callback function to move to the next middleware or controller.
+ */
+exports.isStudent = async (req, res, next) => {
+  try {
+    // 1. Check the user's role/accountType extracted from the JWT payload
+    // If the accountType is NOT "Student", access is denied.
+    if (req.user.accountType != "Student") {
+      return res.status(401).json({
+        success: false,
+        message: "This is a protected route for Students only",
+      });
+    } // 2. If the user is a Student, allow them to proceed to the next handler
 
-// isInstructor
+    next();
+  } catch (error) {
+    // Handle errors that might occur if req.user is missing or incomplete
+    return res.status(500).json({
+      success: false,
+      message: "User role cannot be verified, Please try again",
+    });
+  }
+};
 
-// isAdmin
