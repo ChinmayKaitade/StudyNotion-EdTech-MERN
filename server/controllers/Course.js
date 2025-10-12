@@ -3,6 +3,10 @@ const Tag = require("../models/Tags");
 const User = require("../models/User");
 const { uploadImageToCloudinary } = require("../utils/imageUploader"); // Utility for uploading media
 
+// --------------------------------------------------------------------------------
+// ➕ CREATE COURSE
+// --------------------------------------------------------------------------------
+
 /**
  * @async
  * @function createCourse
@@ -26,19 +30,18 @@ exports.createCourse = async (req, res) => {
       !courseDescription ||
       !whatYouWillLearn ||
       !price ||
-      !tag || // The Tag ID
+      !tag ||
       !thumbnail
     ) {
-      // The uploaded file
       return res.status(400).json({
         success: false,
         message: "All fields are required",
       });
-    } // 4. Authorization & Instructor Check // Get instructor ID from the JWT payload injected by the 'auth' middleware
+    } // 4. Authorization & Instructor Check: Verify instructor and fetch details
 
     const userId = req.user.id;
     const instructorDetails = await User.findById(userId);
-    console.log("Instructor Details:", instructorDetails); // Verify that the instructor exists
+    console.log("Instructor Details:", instructorDetails);
 
     if (!instructorDetails) {
       return res.status(404).json({
@@ -58,7 +61,7 @@ exports.createCourse = async (req, res) => {
 
     const thumbnailImage = await uploadImageToCloudinary(
       thumbnail,
-      process.env.FOLDER_NAME // Assuming FOLDER_NAME is defined in the .env file
+      process.env.FOLDER_NAME
     ); // 7. Create the new Course document
 
     const newCourse = await Course.create({
@@ -68,7 +71,7 @@ exports.createCourse = async (req, res) => {
       whatYouWillLearn: whatYouWillLearn,
       price,
       tag: tagDetails._id, // Link to the tag
-      thumbnail: thumbnailImage.secure_url, // Use the secure URL returned by Cloudinary
+      thumbnail: thumbnailImage.secure_url, // Use the secure URL
     }); // 8. Update the User (Instructor) model // Add the newly created course ID to the instructor's 'courses' array
 
     await User.findByIdAndUpdate(
@@ -79,12 +82,22 @@ exports.createCourse = async (req, res) => {
         },
       },
       { new: true }
-    ); // 9. Update the Tag model (Optional but Recommended) // NOTE: The provided Tag schema only holds a single course reference, // but typically the Tag document should hold an array of course IDs. // 10. Return success response
+    ); /* // 9. Update the Tag model (Required for catalog filtering) // NOTE: Assuming the Tag schema is modified to hold an array of course IDs:
+    await Tag.findByIdAndUpdate(
+      { _id: tagDetails._id },
+      {
+        $push: {
+          course: newCourse._id, // If 'course' is an array in the Tag model
+        },
+      },
+      { new: true }
+    );
+    */ // 10. Return success response
 
     return res.status(200).json({
       success: true,
       message: "Course Created Successfully!👍",
-      data: newCourse, // Return the newly created course object
+      data: newCourse,
     });
   } catch (error) {
     // Handle any errors during the creation process
@@ -92,6 +105,42 @@ exports.createCourse = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to create course!😥",
+      error: error.message,
+    });
+  }
+};
+
+// --------------------------------------------------------------------------------
+// 🔍 SHOW ALL COURSES (CATALOG)
+// --------------------------------------------------------------------------------
+
+/**
+ * @async
+ * @function showAllCourses
+ * @description Controller function to retrieve all courses available in the database.
+ * This is the primary API call for the public course catalog display.
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+exports.showAllCourses = async (req, res) => {
+  try {
+    // 1. Enhanced Query: Fetch all courses and deeply populate related data
+    // TODO: Change the below code statement incrementally
+    const allCourses = await Course.find(
+      {} // Finds all documents (no filter)
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Data for all courses fetched successfully!👍",
+      data: allCourses,
+    });
+  } catch (error) {
+    // 3. Handle server or database errors
+    console.error("Error fetching all courses:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Cannot fetch course data!😥",
       error: error.message,
     });
   }
