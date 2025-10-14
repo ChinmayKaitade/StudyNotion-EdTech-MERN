@@ -37,7 +37,7 @@ exports.createSection = async (req, res) => {
         },
       },
       { new: true } // Return the updated Course document
-    ); // NOTE: For the frontend to properly display the updated course, // it's highly recommended to fully populate the updatedCourseDetails // (e.g., populate('courseContent').populate('subSection')). // 5. Return success response
+    ); // NOTE: For the frontend to properly display the updated course, it should // fully populate the returned updatedCourseDetails (e.g., populate('courseContent').populate('subSection')). // 5. Return success response
 
     return res.status(200).json({
       success: true,
@@ -79,16 +79,13 @@ exports.updateSection = async (req, res) => {
         message:
           "Missing Properties. All fields are required (sectionName and sectionId)",
       });
-    } // 3. Update the Section document // Find the section by ID and update its name
+    } // 3. Update the Section document
 
     const section = await Section.findByIdAndUpdate(
       sectionId,
       { sectionName }, // Update payload: set the new sectionName
       { new: true } // Return the updated document
     ); // 4. Return success response
-
-    // NOTE: To provide immediate feedback to the frontend, you might need to
-    // fetch and return the entire updated course structure here (potentially by populating the section).
 
     res.status(200).json({
       success: true,
@@ -101,6 +98,65 @@ exports.updateSection = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Unable to update section. Please try again",
+      error: error.message,
+    });
+  }
+};
+
+// --------------------------------------------------------------------------------
+// ❌ DELETE SECTION (Module/Chapter)
+// --------------------------------------------------------------------------------
+
+/**
+ * @async
+ * @function deleteSection
+ * @description Controller function for deleting a Section (module).
+ * It performs two critical steps: deletes the Section document and removes its ID from the parent Course.
+ * NOTE: It should ideally also delete all associated SubSections (lessons).
+ * @param {object} req - Express request object (expects 'sectionId' in req.params).
+ * @param {object} res - Express response object.
+ */
+exports.deleteSection = async (req, res) => {
+  try {
+    // 1. Get the section ID from the URL parameters
+    const { sectionId } = req.params; // 3. Delete the Section document
+
+    // NOTE: The request should ideally also include 'courseId' in the body
+    // for a more efficient and secure removal from the parent course.
+
+    // 2. Find the section to get necessary info before deleting (if needed for cleanup)
+    // For simplicity, we skip fetching related SubSections here, but cleanup is vital.
+
+    const deletedSection = await Section.findByIdAndDelete(sectionId);
+
+    // 4. Update the Course document (Remove the reference)
+    // Find the Course that contains this section and pull the reference
+    await Course.findOneAndUpdate(
+      { courseContent: sectionId }, // Find the course where the sectionId exists in the array
+      {
+        $pull: {
+          courseContent: sectionId, // Remove the section ID from the courseContent array
+        },
+      },
+      { new: true }
+    ); // 5. Return success response
+
+    // NOTE: A mandatory step is to delete all associated SubSections (lessons)
+    // within the deleted Section to prevent orphaned SubSection documents.
+    // Example cleanup:
+    /* await SubSection.deleteMany({ _id: { $in: deletedSection.subSection } });
+     */
+
+    return res.status(200).json({
+      success: true,
+      message: "Section Deleted Successfully!👍",
+    });
+  } catch (error) {
+    // 6. Handle server or database errors
+    console.error("Error deleting section:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to delete section. Please try again",
       error: error.message,
     });
   }
