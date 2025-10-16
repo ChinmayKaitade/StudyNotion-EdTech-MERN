@@ -119,3 +119,40 @@ exports.getAverageRating = async (req, res) => {
   }
 };
 
+// --------------------------------------------------------------------------------
+// 📢 GET ALL RATINGS (For Global/Review Page)
+// --------------------------------------------------------------------------------
+
+/**
+ * @async
+ * @function getAllRating
+ * @description Controller function to fetch all ratings and reviews across all courses.
+ * It sorts the results and populates the linked User and Course data for context.
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+exports.getAllRating = async (req, res) => {
+  try {
+    // 1. Query to find all reviews, sorted descending by rating
+    const allReviews = await RatingAndReview.find()
+      .sort({ rating: -1 }) // Sort from highest rating to lowest
+      .populate({
+        path: "user",
+        select: "firstName lastName email image", // Select essential user info
+      })
+      .populate({
+        path: "course",
+        select: "courseName", // Select only the course name
+      })
+      .exec(); // 2. Return success response
+
+    return res.status(200).json({
+      success: true,
+      message: "All reviews fetched successfully!👍",
+      data: allReviews,
+    });
+  } catch (error) {
+    console.error("Error fetching all ratings:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
