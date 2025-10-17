@@ -5,9 +5,9 @@ const router = express.Router();
 // Import the required controllers and middleware functions
 const {
   login,
-  signup,
-  sendotp,
   changePassword,
+  sendOTP,
+  signUp,
 } = require("../controllers/Auth"); // Auth controllers
 
 const { isDemo } = require("../middlewares/demo"); // Middleware for restricting changes in a demo environment (assuming existence)
@@ -26,10 +26,10 @@ const { auth } = require("../middlewares/auth"); // Authentication middleware (J
 router.post("/login", login);
 
 // Route for user signup (Public access)
-router.post("/signup", signup);
+router.post("/signup", signUp);
 
 // Route for sending OTP to the user's email (Public access, usually before signup)
-router.post("/sendotp", sendotp);
+router.post("/sendotp", sendOTP);
 
 // Route for Changing the password (Requires user to be logged in and not in a demo environment)
 router.post("/changepassword", auth, isDemo, changePassword);
