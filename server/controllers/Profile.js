@@ -1,158 +1,320 @@
 const Profile = require("../models/Profile");
 const User = require("../models/User");
-const Course = require("../models/Course"); // Required for the deleteProfile cleanup step
+const Course = require("../models/Course");
+const { uploadImageToCloudinary } = require("../utils/imageUploader"); // Assuming this utility exists
 
 // --------------------------------------------------------------------------------
-// ✏️ UPDATE PROFILE
+// ✏️ UPDATE PROFILE (User Details & Additional Details)
 // --------------------------------------------------------------------------------
 
 /**
  * @async
  * @function updateProfile
- * @description Controller function to update a logged-in user's additional profile details.
- * It retrieves the Profile ID from the User document and updates the corresponding Profile document fields (gender, DOB, contact, about).
+ * @description Updates both the core User document (firstName, lastName) and the linked
+ * Profile document (gender, DOB, contact, about).
  * NOTE: This route must be protected by the 'auth' middleware.
- * @param {object} req - Express request object (expects profile fields in req.body, and user ID in req.user.id).
+ * @param {object} req - Express request object (expects profile/user details in req.body, user ID in req.user.id).
  * @param {object} res - Express response object.
  */
 exports.updateProfile = async (req, res) => {
   try {
-    // 1. Extract data from the request body
-    const { dateOfBirth = "", about = "", contactNumber, gender } = req.body; // 2. Get user ID from the authenticated request
+    // 1. Destructure data from the request body
+    const {
+      dateOfBirth = "",
+      about = "",
+      contactNumber = "",
+      firstName,
+      lastName,
+      gender = "",
+    } = req.body;
+    const id = req.user.id;
 
-    const id = req.user.id; // 3. Validation: Check for mandatory fields
+    // 2. Find the profile documents
+    const userDetails = await User.findById(id);
+    const profile = await Profile.findById(userDetails.additionalDetails);
 
-    if (!contactNumber || !gender || !id) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Contact Number and Gender are required fields for the profile.",
-      });
-    } // 4. Find the User document to get the associated Profile ID
+    // NOTE: Optional validation for contactNumber/gender can be added here.
 
-    const userDetails = await User.findById(id); // 5. Retrieve the Profile document using the linked ID
+    // 3. Update the fields using logical OR for partial updates
+    // Update User fields
+    userDetails.firstName = firstName || userDetails.firstName;
+    userDetails.lastName = lastName || userDetails.lastName;
 
-    const profileId = userDetails.additionalDetails;
-    const profileDetails = await Profile.findById(profileId); // 6. Update the fields on the in-memory Profile object
+    // Update Profile fields
+    profile.dateOfBirth = dateOfBirth || profile.dateOfBirth;
+    profile.about = about || profile.about;
+    profile.gender = gender || profile.gender;
+    profile.contactNumber = contactNumber || profile.contactNumber;
 
-    profileDetails.dateOfBirth = dateOfBirth;
-    profileDetails.about = about;
-    profileDetails.gender = gender;
-    profileDetails.contactNumber = contactNumber; // 7. Save the updated Profile document to the database
+    // 4. Save both updated documents
+    await profile.save();
+    await userDetails.save();
 
-    await profileDetails.save(); // 8. Return success response
-
+    // 5. Return success response
     return res.status(200).json({
       success: true,
-      message: "Profile Updated Successfully!👍",
-      data: profileDetails, // Return the updated profile details
+      message: "Profile updated successfully!👍",
+      profile,
+      userDetails,
     });
   } catch (error) {
-    // 9. Handle server or database errors
     console.error("Error updating profile:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error😥: Could not update profile details.",
+      message: "Internal Server Error: Could not update profile.",
       error: error.message,
     });
   }
 };
 
 // --------------------------------------------------------------------------------
-// ❌ DELETE PROFILE (ACCOUNT DELETION)
+// ❌ DELETE ACCOUNT
 // --------------------------------------------------------------------------------
 
 /**
  * @async
  * @function deleteProfile
- * @description Controller function to permanently delete a user account and all associated data.
- * It performs critical cleanup: deletes the Profile, removes the user from all enrolled courses,
- * and finally deletes the User document.
- * NOTE: This route must be protected by the 'auth' middleware.
+ * @description Permanently deletes the user account and performs critical cleanup (Profile, Course enrollments).
+ * NOTE: This route must be protected by the 'auth' and likely the 'isDemo' middleware.
  * @param {object} req - Express request object (expects user ID in req.user.id).
  * @param {object} res - Express response object.
  */
 exports.deleteProfile = async (req, res) => {
   try {
-    // 1. Get user ID from the authenticated request
-    const id = req.user.id; // 2. Find the user and validate existence
-
-    const userDetails = await User.findById(id);
-    if (!userDetails) {
-      return res.status(400).json({
+    const id = req.user.id;
+    const user = await User.findById({ _id: id });
+    if (!user) {
+      return res.status(404).json({
         success: false,
-        message: "User Not Found!😥",
+        message: "User not found",
       });
-    } // 3. Delete the associated Profile document
+    }
 
-    await Profile.findByIdAndDelete({ _id: userDetails.additionalDetails }); // 4. Cleanup Step: Un-enroll user from all enrolled courses // Loop through the array of course IDs the user is enrolled in
+    // 1. Delete the associated Profile
+    await Profile.findByIdAndDelete({ _id: user.additionalDetails });
 
-    for (const courseId of userDetails.courses) {
+    // 2. Resolve TODO: Unenroll User From All the Enrolled Courses
+    for (const courseId of user.courses) {
       // Find each course and remove the user's ID from the 'studentsEnrolled' array
       await Course.findByIdAndUpdate(
         courseId,
-        { $pull: { studentsEnrolled: id } }, // $pull removes the element matching the ID
+        { $pull: { studentsEnrolled: id } },
         { new: true }
       );
-    } // 5. Delete the User document
+    }
 
-    await User.findByIdAndDelete({ _id: id }); // 6. Return success response
+    // 3. Delete the User document
+    await User.findByIdAndDelete({ _id: id });
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      message: "User Deleted Successfully!👍 All associated data cleaned up.",
+      message: "User deleted successfully!👍 All associated data cleaned up.",
     });
   } catch (error) {
-    // 7. Handle server or database errors
-    console.error("Error deleting profile:", error);
-    return res.status(500).json({
+    console.error("Error deleting account:", error);
+    res.status(500).json({
       success: false,
-      message: "Internal Server Error😥: Could not delete profile details.",
+      message: "User Cannot be deleted successfully",
       error: error.message,
     });
   }
 };
 
 // --------------------------------------------------------------------------------
-// 🔍 GET ALL USER DETAILS
+// 🔍 GET ALL USER DETAILS (Core Profile Fetch)
 // --------------------------------------------------------------------------------
 
 /**
  * @async
  * @function getAllUserDetails
- * @description Controller function to fetch the complete details of the authenticated user.
- * It uses the user ID from the JWT payload and populates the linked 'additionalDetails' (Profile).
- * NOTE: This route must be protected by the 'auth' middleware.
+ * @description Fetches the core User document and populates the linked Profile document.
  * @param {object} req - Express request object (expects user ID in req.user.id).
  * @param {object} res - Express response object.
  */
 exports.getAllUserDetails = async (req, res) => {
   try {
-    // 1. Get user ID from the authenticated request
-    const id = req.user.id; // 2. Fetch user details and populate the linked Profile document
+    const id = req.user.id;
 
+    // Fetch User and populate their additionalDetails (Profile)
     const userDetails = await User.findById(id)
-      .populate("additionalDetails") // Replace the Profile ID with the actual Profile document data
-      .exec(); // 3. Check if user details were successfully fetched
+      .populate("additionalDetails")
+      .exec();
 
-    if (!userDetails) {
-      return res.status(404).json({
-        success: false,
-        message: "User details not found.",
-      });
-    } // 4. Return success response with the fetched data
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      message: "User Data Fetched Successfully!👍",
-      data: userDetails, // Include the fetched and populated user details
+      message: "User Data fetched successfully!👍",
+      data: userDetails,
     });
   } catch (error) {
-    // 5. Handle server or database errors
     console.error("Error fetching user details:", error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error: Could not fetch user data.",
+      error: error.message,
+    });
+  }
+};
+
+// --------------------------------------------------------------------------------
+// 🎒 GET ENROLLED COURSES (Student View)
+// --------------------------------------------------------------------------------
+
+/**
+ * @async
+ * @function getEnrolledCourses
+ * @description Fetches all courses a student is currently enrolled in, along with their progress.
+ * The query performs deep population to provide the entire course content structure.
+ * @param {object} req - Express request object (expects user ID in req.user.id).
+ * @param {object} res - Express response object.
+ */
+exports.getEnrolledCourses = async (req, res) => {
+  try {
+    const id = req.user.id;
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Fetch User and deeply populate their enrolled courses and progress
+    const enrolledCourses = await User.findById(id)
+      .populate({
+        path: "courses",
+        // Deep population for course content: Section -> SubSection
+        populate: {
+          path: "courseContent",
+          populate: {
+            path: "subSection",
+          },
+        },
+      })
+      .populate("courseProgress")
+      .exec();
+
+    res.status(200).json({
+      success: true,
+      message: "Enrolled courses fetched successfully!👍",
+      data: enrolledCourses,
+    });
+  } catch (error) {
+    console.error("Error fetching enrolled courses:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error: Could not fetch enrolled courses.",
+      error: error.message,
+    });
+  }
+};
+
+// --------------------------------------------------------------------------------
+// 🖼️ UPDATE DISPLAY PICTURE (Avatar)
+// --------------------------------------------------------------------------------
+
+/**
+ * @async
+ * @function updateDisplayPicture
+ * @description Handles the upload of a new profile picture (pfp) to Cloudinary and updates the User document.
+ * @param {object} req - Express request object (expects image file 'pfp' in req.files, user ID in req.user.id).
+ * @param {object} res - Express response object.
+ */
+exports.updateDisplayPicture = async (req, res) => {
+  try {
+    const id = req.user.id;
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const image = req.files.pfp;
+
+    if (!image) {
+      return res.status(404).json({
+        success: false,
+        message: "Image file (pfp) not found in request",
+      });
+    }
+
+    // Upload the image to Cloudinary
+    const uploadDetails = await uploadImageToCloudinary(
+      image,
+      process.env.FOLDER_NAME // Assuming FOLDER_NAME is the upload folder
+    );
+
+    // Update the User document with the new image URL
+    const updatedImage = await User.findByIdAndUpdate(
+      { _id: id },
+      { image: uploadDetails.secure_url },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Profile picture updated successfully!🖼️",
+      data: updatedImage,
+    });
+  } catch (error) {
+    console.error("Error updating display picture:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error: Could not update display picture.",
+      error: error.message,
+    });
+  }
+};
+
+// --------------------------------------------------------------------------------
+// 📊 INSTRUCTOR DASHBOARD
+// --------------------------------------------------------------------------------
+
+/**
+ * @async
+ * @function instructorDashboard
+ * @description Fetches performance metrics for an instructor's courses (total students, total revenue).
+ * NOTE: This route must be protected by 'auth' and 'isInstructor' middleware.
+ * @param {object} req - Express request object (expects user ID in req.user.id).
+ * @param {object} res - Express response object.
+ */
+exports.instructorDashboard = async (req, res) => {
+  try {
+    const id = req.user.id;
+
+    // Find all courses created by the instructor
+    const courseData = await Course.find({ instructor: id });
+
+    // Calculate metrics for each course
+    const courseDetails = courseData.map((course) => {
+      const totalStudents = course?.studentsEnrolled?.length || 0;
+      // Revenue is calculated by multiplying price by the number of enrolled students
+      const totalRevenue = course?.price * totalStudents;
+
+      const courseStats = {
+        _id: course._id,
+        courseName: course.courseName,
+        courseDescription: course.courseDescription,
+        totalStudents,
+        totalRevenue,
+      };
+      return courseStats;
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Instructor dashboard data fetched successfully!📈",
+      data: courseDetails,
+    });
+  } catch (error) {
+    console.error("Error fetching instructor dashboard:", error);
+    return res.status(500).json({
+      success: false,
+      message:
+        "Internal Server Error: Could not fetch instructor dashboard data.",
       error: error.message,
     });
   }
