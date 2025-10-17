@@ -1,15 +1,18 @@
 /**
- * @function courseEnrollmentEmail
- * @description Generates the HTML content for the course enrollment confirmation email template.
- * This email is sent upon successful payment and enrollment.
- * @param {string} courseName - The full name of the course the user enrolled in.
- * @param {string} name - The user's first name, used for personalization.
+ * @function paymentSuccess
+ * @description Generates the HTML content for the payment success email template.
+ * This email confirms the user's payment and provides transaction details.
+ * @param {number} amount - The total amount paid (in Rupees, not paise).
+ * @param {string} paymentId - The unique ID assigned by the payment gateway (Razorpay).
+ * @param {string} orderId - The unique ID for the order created on the server.
+ * @param {string} name - The user's first name.
+ * @param {string} lastname - The user's last name.
  * @returns {string} The complete HTML template string.
  */
-exports.courseEnrollmentEmail = (courseName, name) => {
+exports.paymentSuccess = (amount, paymentId, orderId, name, lastname) => {
   return `<!DOCTYPE html>
         <html>
-        
+        
         <head>
             <meta charset="UTF-8">
             <title>Course Registration Confirmation</title>
@@ -23,31 +26,31 @@ exports.courseEnrollmentEmail = (courseName, name) => {
                     margin: 0;
                     padding: 0;
                 }
-        
-        
+        
+        
                 .container {
                     max-width: 600px;
                     margin: 0 auto;
                     padding: 20px;
                     text-align: center;
                 }
-        
+        
                 .logo {
                     max-width: 200px;
                     margin-bottom: 20px;
                 }
-        
+        
                 .message {
                     font-size: 18px;
                     font-weight: bold;
                     margin-bottom: 20px;
                 }
-        
+        
                 .body {
                     font-size: 16px;
                     margin-bottom: 20px;
                 }
-        
+        
                 .cta {
                     display: inline-block;
                     padding: 10px 20px;
@@ -59,37 +62,41 @@ exports.courseEnrollmentEmail = (courseName, name) => {
                     font-weight: bold;
                     margin-top: 20px;
                 }
-        
+        
                 .support {
                     font-size: 14px;
                     color: #999999;
                     margin-top: 20px;
                 }
-        
+        
                 .highlight {
                     font-weight: bold;
                 }
             </style>
-        
+        
         </head>
-        
+        
         <body>
             <div class="container">
                 <a href="https://studynotion-edtech-project.vercel.app"><img class="logo" src="https://i.ibb.co/7Xyj3PC/logo.png"
                         alt="StudyNotion Logo"></a>
-                <div class="message">Course Registration Confirmation</div>
+                <div class="message">
+                Your payment of ₹${amount} has been successfully received.
+                </div>
                 <div class="body">
-                    <p>Dear ${name},</p>
-                    <p>You have successfully registered for the course <span class="highlight">"${courseName}"</span>. We
-                        are excited to have you as a participant!</p>
-                    <p>Please log in to your learning dashboard to access the course materials and start your learning journey.
+                    <p>Dear ${name} ${lastname},</p>
+                    <p>
+                        Thank you for purchasing the course. Your payment of ₹${amount} has been successfully received.
                     </p>
-                    <a class="cta" href="https://studynotion-edtech-project.vercel.app/dashboard">Go to Dashboard</a>
+                    <p>
+                        Your payment ID is <span class="highlight">${paymentId}</span> and your order ID is <span
+                            class="highlight">${orderId}</span>.
+                    </p>
                 </div>
                 <div class="support">If you have any questions or need assistance, please feel free to reach out to us at <a
                         href="mailto:info@studynotion.com">info@studynotion.com</a>. We are here to help!</div>
             </div>
         </body>
-        
+        
         </html>`;
 };
