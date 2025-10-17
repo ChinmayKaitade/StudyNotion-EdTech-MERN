@@ -1,5 +1,6 @@
 const RatingAndReview = require("../models/RatingAndReview");
 const Course = require("../models/Course");
+const { default: mongoose } = require("mongoose");
 
 // --------------------------------------------------------------------------------
 // ➕ CREATE RATING AND REVIEW
@@ -20,12 +21,11 @@ exports.createRating = async (req, res) => {
     const userId = req.user.id;
     const { rating, review, courseId } = req.body; // 1. Check if the user is enrolled in the course
 
-    const courseDetails = await Course.findOne({
+    const courseDetails = await Course.find({
       _id: courseId, // Use $elemMatch with $eq to efficiently check if the array contains the user ID
       studentsEnrolled: { $elemMatch: { $eq: userId } },
-    }); // Handle case where user is not enrolled
-
-    if (!courseDetails) {
+    }); // Handle case where user is not enrolled (query returns an empty array)
+    if (courseDetails.length === 0) {
       return res
         .status(404)
         .json({ success: false, message: "Student not enrolled in course" });
@@ -35,12 +35,10 @@ exports.createRating = async (req, res) => {
       user: userId,
       course: courseId,
     });
-
     if (alreadyReviewed) {
-      return res.status(404).json({
-        success: false,
-        message: "User has already reviewed this course",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Already reviewed" });
     } // 3. Create the new RatingAndReview document
 
     const ratingReview = await RatingAndReview.create({
@@ -49,7 +47,6 @@ exports.createRating = async (req, res) => {
       course: courseId,
       user: userId,
     }); // 4. Update the Course document (add the new RatingAndReview reference)
-
     await Course.findByIdAndUpdate(
       { _id: courseId },
       {
@@ -57,16 +54,14 @@ exports.createRating = async (req, res) => {
           ratingAndReviews: ratingReview._id,
         },
       },
-      { new: true }
+      { new: true } // Added {new: true} for good practice
     ); // 5. Return success response
-
     res.status(200).json({
       success: true,
-      message: "Rating added successfully!👍",
+      message: "Rating added successfully",
       ratingReview,
     });
   } catch (error) {
-    // Handle server/database errors
     console.error("Error creating rating:", error);
     res.status(500).json({ success: false, message: error.message });
   }
@@ -79,15 +74,13 @@ exports.createRating = async (req, res) => {
 /**
  * @async
  * @function getAverageRating
- * @description Controller function to calculate the average rating for a specific course.
- * It uses MongoDB's Aggregation Pipeline for efficient calculation.
+ * @description Controller function to calculate the average rating for a specific course using MongoDB Aggregation.
  * @param {object} res - Express response object.
  * @param {object} req - Express request object (expects 'courseId' in req.body).
  */
 exports.getAverageRating = async (req, res) => {
   try {
     const courseId = req.body.courseId; // 1. MongoDB Aggregation Pipeline
-
     const result = await RatingAndReview.aggregate([
       {
         $match: {
@@ -99,13 +92,13 @@ exports.getAverageRating = async (req, res) => {
         $group: {
           // Stage 2: Group all matching documents
           _id: null, // Group into a single document
-          averageRating: { $avg: "$rating" }, // Calculate the average of the 'rating' field
+          averageRating: { $avg: "$rating" }, // Calculate the average
         },
       },
     ]); // 2. Handle results
 
     if (result.length > 0) {
-      // If ratings exist, return the calculated average (result is an array with one element)
+      // Return the calculated average
       return res.status(200).json({ averageRating: result[0].averageRating });
     } else {
       // If no ratings exist, return 0
@@ -132,23 +125,23 @@ exports.getAverageRating = async (req, res) => {
  * @param {object} res - Express response object.
  */
 exports.getAllRating = async (req, res) => {
+  //get sorted by rating
   try {
     // 1. Query to find all reviews, sorted descending by rating
     const allReviews = await RatingAndReview.find()
       .sort({ rating: -1 }) // Sort from highest rating to lowest
       .populate({
-        path: "user",
-        select: "firstName lastName email image", // Select essential user info
+        path: "user", // Populate essential user info
+        select: "firstName lastName email image",
       })
       .populate({
-        path: "course",
-        select: "courseName", // Select only the course name
+        path: "course", // Populate the course name
+        select: "courseName",
       })
       .exec(); // 2. Return success response
-
     return res.status(200).json({
       success: true,
-      message: "All reviews fetched successfully!👍",
+      message: "all reviews fetched successfully",
       data: allReviews,
     });
   } catch (error) {
