@@ -3,11 +3,12 @@ const Course = require("../models/Course");
 const User = require("../models/User");
 const mailSender = require("../utils/mailSender");
 const {
-  // Import the HTML template for the enrollment confirmation email
   courseEnrollmentEmail,
 } = require("../mail/templates/courseEnrollmentEmail");
+const { paymentSuccess } = require("../mail/templates/paymentSuccess"); // Assuming paymentSuccess email template exists
 const mongoose = require("mongoose"); // Used for ObjectId conversion
 const crypto = require("crypto"); // Used for HMAC verification in verifySignature
+const CourseProgress = require("../models/CourseProgress"); // Assuming CourseProgress model exists
 
 // NOTE: This should be read from process.env in a production environment
 const webhookSecret = "12345678";
@@ -117,14 +118,70 @@ exports.capturePayment = async (req, res) => {
 // --------------------------------------------------------------------------------
 
 /**
- * @async
- * @function verifySignature
- * @description Controller function that acts as a webhook handler for Razorpay.
- * It verifies the authenticity of the payment data using the HMAC signature. If successful,
- * it enrolls the student in the course and sends a confirmation email.
- * @param {object} req - Express request object (contains payment payload in req.body and signature in req.headers).
- * @param {object} res - Express response object.
+ * @function enrolleStudent
+ * @description Helper function to fulfill enrollment after successful payment verification.
+ * @param {string} courseId - ID of the course to enroll the user in.
+ * @param {string} userId - ID of the user to be enrolled.
+ * @param {string} paymentId - The Razorpay payment ID.
+ * @param {string} orderId - The Razorpay order ID.
+ * @returns {Promise<void>}
  */
+const enrolleStudent = async (courseId, userId) => {
+  try {
+    // 1. Update the Course: Add user to studentsEnrolled array
+    const enrolledCourse = await Course.findOneAndUpdate(
+      courseId,
+      { $push: { studentsEnrolled: userId } },
+      { new: true }
+    );
+
+    // 2. Update the User: Add course to the user's courses array
+    const enrolledStudent = await User.findByIdAndUpdate(
+      userId,
+      { $push: { courses: courseId } },
+      { new: true }
+    );
+
+    // 3. Set Course Progress: Create a new CourseProgress document
+    const newCourseProgress = new CourseProgress({
+      userID: userId,
+      courseID: courseId,
+    });
+    await newCourseProgress.save();
+
+    // 4. Update the User: Add CourseProgress ID to user's courseProgress array
+    await User.findByIdAndUpdate(
+      userId,
+      {
+        $push: { courseProgress: newCourseProgress._id },
+      },
+      { new: true }
+    );
+
+    // 5. Send enrollment email
+    const courseName = enrolledCourse.courseName;
+    const courseDescription = enrolledCourse.courseDescription;
+    const thumbnail = enrolledCourse.thumbnail;
+    const userEmail = enrolledStudent.email;
+    const userName = enrolledStudent.firstName + " " + enrolledStudent.lastName;
+
+    const emailTemplate = courseEnrollmentEmail(
+      courseName,
+      userName,
+      courseDescription,
+      thumbnail
+    );
+    await mailSender(
+      userEmail,
+      `You have successfully enrolled for ${courseName}`,
+      emailTemplate
+    );
+  } catch (error) {
+    console.error("Error during student enrollment:", error);
+    throw error;
+  }
+};
+
 exports.verifySignature = async (req, res) => {
   // 1. Extract the signature sent by Razorpay in the request header
   const signature = req.headers["x-razorpay-signature"]; // 2. Generate HMAC signature on the server side
@@ -139,37 +196,8 @@ exports.verifySignature = async (req, res) => {
     const { courseId, userId } = req.body.payload.payment.entity.notes;
 
     try {
-      // 5. Enrollment Step A: Add user to the Course's 'studentsEnrolled' array
-      const enrolledCourse = await Course.findOneAndUpdate(
-        { _id: courseId },
-        { $push: { studentsEnrolled: userId } }, // Atomically push the user ID
-        { new: true }
-      );
-
-      if (!enrolledCourse) {
-        return res.status(500).json({
-          success: false,
-          message: "Course not found after payment. Enrollment failed.",
-        });
-      }
-
-      console.log("Course Updated:", enrolledCourse); // 6. Enrollment Step B: Add course to the User's 'courses' array
-
-      const enrolledStudent = await User.findOneAndUpdate(
-        { _id: userId },
-        { $push: { courses: courseId } }, // Atomically push the course ID
-        { new: true }
-      );
-
-      console.log("Student Updated:", enrolledStudent); // 7. Send enrollment confirmation email
-
-      const emailResponse = await mailSender(
-        enrolledStudent.email,
-        "Congratulations, from StudyNotion",
-        "Congratulations, you are onboarded into new StudyNotion Course" // NOTE: Should use the imported HTML template here
-      );
-
-      console.log("Enrollment Email Sent:", emailResponse); // 8. Important: Webhook response must be 200/OK to prevent Razorpay retries
+      // 5. Fulfill the enrollment action
+      await enrolleStudent(courseId, userId); // 6. Important: Webhook response must be 200/OK to prevent Razorpay retries
 
       return res.status(200).json({
         success: true,
@@ -177,7 +205,7 @@ exports.verifySignature = async (req, res) => {
       });
     } catch (error) {
       // Handle errors during enrollment or DB update
-      console.error("Error during enrollment process:", error); // Still return 500/error response, but note that the webhook might retry
+      console.error("Error during enrollment process:", error);
       return res.status(500).json({
         success: false,
         message: `Enrollment processing failed: ${error.message}`,
@@ -188,6 +216,58 @@ exports.verifySignature = async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Invalid Signature: Request unauthorized.",
+    });
+  }
+};
+
+// --------------------------------------------------------------------------------
+// 📧 SEND PAYMENT SUCCESS EMAIL (Confirmation Email Utility)
+// --------------------------------------------------------------------------------
+
+/**
+ * @async
+ * @function sendPaymentSuccessEmail
+ * @description Sends a final payment confirmation email to the user with transaction details.
+ * This is typically called by the frontend after receiving a successful payment response.
+ * @param {object} req - Express request object (expects amount, paymentId, orderId in req.body, userId in req.user.id).
+ * @param {object} res - Express response object.
+ */
+exports.sendPaymentSuccessEmail = async (req, res) => {
+  const { amount, paymentId, orderId } = req.body;
+  const userId = req.user.id; // 1. Validation
+
+  if (!amount || !paymentId) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide valid payment details",
+    });
+  }
+
+  try {
+    // 2. Find student details for email personalization
+    const enrolledStudent = await User.findById(userId); // 3. Send email using the imported template
+
+    await mailSender(
+      enrolledStudent.email,
+      `Study Notion Payment Successful!`,
+      paymentSuccess(
+        amount / 100, // Convert amount from paise to rupees
+        paymentId,
+        orderId,
+        enrolledStudent.firstName,
+        enrolledStudent.lastName
+      )
+    ); // 4. Return success response
+
+    return res.status(200).json({
+      success: true,
+      message: "Payment success email sent successfully.",
+    });
+  } catch (error) {
+    console.error("Error sending payment success email:", error);
+    return res.status(500).json({
+      success: false,
+      message: `Error sending payment success email: ${error.message}`,
     });
   }
 };
