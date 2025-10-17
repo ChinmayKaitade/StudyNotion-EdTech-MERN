@@ -232,12 +232,12 @@ exports.updateDisplayPicture = async (req, res) => {
       });
     }
 
-    const image = req.files.pfp;
+    const image = req.files.displayPicture;
 
     if (!image) {
       return res.status(404).json({
         success: false,
-        message: "Image file (pfp) not found in request",
+        message: "Image file (displayPicture) not found in request",
       });
     }
 
