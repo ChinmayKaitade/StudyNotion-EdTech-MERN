@@ -43,7 +43,7 @@ const {
   createRating,
   getAverageRating,
   getAllRating,
-} = require("../controllers/RatingAndReviews");
+} = require("../controllers/RatingAndReview");
 
 // Importing Middlewares
 const { isDemo } = require("../middlewares/demo");
