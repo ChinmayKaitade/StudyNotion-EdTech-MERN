@@ -12,7 +12,7 @@ const { uploadImageToCloudinary } = require("../utils/imageUploader"); // Utilit
  * @async
  * @function createSubSection
  * @description Creates a new SubSection (lesson/video), uploads the video file to Cloudinary,
- * and pushes the new SubSection's ID to the parent Section's 'subSection' array.
+ * and pushes the new SubSection's ID to the parent Section's 'subSection' array. Returns the fully updated Course structure.
  * NOTE: This route should be protected by 'auth' and 'isInstructor' middleware.
  * @param {object} req - Express request object (expects sectionId, title, description, courseId in req.body, and videoFile in req.files).
  * @param {object} res - Express response object.
@@ -44,6 +44,8 @@ exports.createSubSection = async (req, res) => {
       process.env.FOLDER_VIDEO // Assuming FOLDER_VIDEO is configured in .env
     );
 
+    console.log(uploadDetails);
+
     // 5. Create a new SubSection document
     const SubSectionDetails = await SubSection.create({
       title: title,
@@ -53,13 +55,13 @@ exports.createSubSection = async (req, res) => {
     });
 
     // 6. Update the parent Section with the new SubSection ID
-    const updatedSection = await Section.findByIdAndUpdate(
+    await Section.findByIdAndUpdate(
       { _id: sectionId },
       { $push: { subSection: SubSectionDetails._id } },
       { new: true }
-    ).populate("subSection"); // Populate the subSections to return updated section structure
+    ).populate("subSection");
 
-    // 7. Fetch the fully populated Course structure (Section -> SubSection)
+    // 7. Fetch the fully populated Course structure (Section -> SubSection) to update frontend
     const updatedCourse = await Course.findById(courseId)
       .populate({ path: "courseContent", populate: { path: "subSection" } })
       .exec();
@@ -93,36 +95,40 @@ exports.updateSubSection = async (req, res) => {
   try {
     // 1. Extract necessary information
     const { SubsectionId, title, description, courseId } = req.body;
-    const video = req?.files?.videoFile; // Optional video file
+    const video = req?.files?.videoFile;
 
     // 2. Handle video upload (if a new file is provided)
     let uploadDetails = null;
     if (video) {
+      // Upload new video file
       uploadDetails = await uploadImageToCloudinary(
         video,
         process.env.FOLDER_VIDEO
       );
     }
 
-    // 3. Find and update the SubSection document
-    const SubSectionDetails = await SubSection.findByIdAndUpdate(
+    // 3. Find the existing SubSection to use its current values for partial updates
+    const existingSubSection = await SubSection.findById(SubsectionId);
+
+    // 4. Find and update the SubSection document
+    await SubSection.findByIdAndUpdate(
       { _id: SubsectionId },
       {
-        // Set new values, using the current value if the new one is null/undefined
-        title: title || SubSectionDetails.title,
-        description: description || SubSectionDetails.description,
+        // Set new values, using existing values if the new one is null/undefined
+        title: title || existingSubSection.title,
+        description: description || existingSubSection.description,
         // Only update videoUrl if a new file was uploaded
-        videoUrl: uploadDetails?.secure_url || SubSectionDetails.videoUrl,
+        videoUrl: uploadDetails?.secure_url || existingSubSection.videoUrl,
       },
-      { new: true }
+      { new: true } // Return the updated document (though we fetch the course next)
     );
 
-    // 4. Fetch the fully populated Course structure (Section -> SubSection)
+    // 5. Fetch the fully populated Course structure (Section -> SubSection)
     const updatedCourse = await Course.findById(courseId)
       .populate({ path: "courseContent", populate: { path: "subSection" } })
       .exec();
 
-    // 5. Return the fully updated course
+    // 6. Return the fully updated course
     return res.status(200).json({ success: true, data: updatedCourse });
   } catch (error) {
     // Handle any errors that may occur during the process
@@ -150,37 +156,43 @@ exports.updateSubSection = async (req, res) => {
 exports.deleteSubSection = async (req, res) => {
   try {
     // 1. Extract IDs
-    const { subSectionId, courseId, sectionId } = req.body;
+    const { subSectionId, courseId } = req.body;
+    const sectionId = req.body.sectionId;
 
     // 2. Validation: Check if mandatory IDs are present
     if (!subSectionId || !sectionId || !courseId) {
       return res.status(404).json({
         success: false,
-        message: "All fields are required (subSectionId, sectionId, courseId)",
+        message: "all fields are required (subSectionId, sectionId, courseId)",
       });
     }
 
-    // NOTE: The original code includes redundant checks for ifsubSection and ifsection after the initial check.
-    // We proceed with deletion and relational cleanup.
+    // 3. Optional validation (redundant checks retained from original code)
+    const ifsubSection = await SubSection.findById({ _id: subSectionId });
+    const ifsection = await Section.findById({ _id: sectionId });
+    if (!ifsubSection || !ifsection) {
+      return res.status(404).json({
+        success: false,
+        message: "Sub-section or Section not found",
+      });
+    }
 
-    // 3. Delete the SubSection document
+    // 4. Delete the SubSection document
     await SubSection.findByIdAndDelete(subSectionId);
 
-    // 4. Update the parent Section: Pull (remove) the SubSection ID from the 'subSection' array
+    // 5. Update the parent Section: Pull (remove) the SubSection ID from the 'subSection' array
     await Section.findByIdAndUpdate(
       { _id: sectionId },
       { $pull: { subSection: subSectionId } },
       { new: true }
     );
 
-    // NOTE: Cleanup should also delete the video file from Cloudinary (not implemented here).
-
-    // 5. Fetch the fully populated Course structure (Section -> SubSection)
+    // 6. Fetch the fully populated Course structure (Section -> SubSection)
     const updatedCourse = await Course.findById(courseId)
       .populate({ path: "courseContent", populate: { path: "subSection" } })
       .exec();
 
-    // 6. Return the fully updated course
+    // 7. Return the fully updated course
     return res
       .status(200)
       .json({
