@@ -1,11 +1,14 @@
 import React from "react";
 import CTAButton from "../components/core/HomePage/Button";
 import { FaArrowRight } from "react-icons/fa";
+import { MdOutlineRateReview } from "react-icons/md";
 import Banner from "../assets/Images/banner.mp4";
 import HighlightText from "../components/core/HomePage/HighlightText";
 import CodeBlocks from "../components/core/HomePage/CodeBlocks";
 import TimelineSection from "../components/core/HomePage/TimeLineSection";
 import LearningLanguageSection from "../components/core/HomePage/LearningLanguageSection";
+import InstructorSection from "../components/core/HomePage/InstructorSection";
+import Footer from "../components/common/Footer";
 
 function Home() {
   return (
@@ -140,6 +143,21 @@ function Home() {
           <LearningLanguageSection />
         </div>
       </div>
+
+      {/* Section 3 */}
+      <div className="w-11/12 mx-auto max-w-maxContent flex flex-col items-center justify-between gap-8 bg-richblack-900 text-white">
+        <InstructorSection />
+
+        <h1 className="text-center text-3xl lg:text-4xl font-semibold mt-8 flex justify-center items-center gap-x-3 mb-5">
+          Reviews From Other Learners{" "}
+          <MdOutlineRateReview className="text-yellow-25" />
+        </h1>
+
+        {/* ReviewSlider code here */}
+      </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
