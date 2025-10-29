@@ -3,7 +3,9 @@ import Home from "./pages/Home";
 import Navbar from "./components/common/Navbar";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
-import OpenRoute from "./components/core/Auth/OpenRoute"
+import OpenRoute from "./components/core/Auth/OpenRoute";
+import PageNotFound from "./pages/PageNotFound";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function App() {
   return (
@@ -29,6 +31,18 @@ function App() {
             </OpenRoute>
           }
         />
+
+        <Route
+          path="forgot-password"
+          element={
+            <OpenRoute>
+              <ForgotPassword />
+            </OpenRoute>
+          }
+        />
+
+        {/* Page Not Found (404 Page ) */}
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     </div>
   );
