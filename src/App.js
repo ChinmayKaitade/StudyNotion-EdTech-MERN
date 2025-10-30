@@ -7,6 +7,8 @@ import OpenRoute from "./components/core/Auth/OpenRoute";
 import PageNotFound from "./pages/PageNotFound";
 import ForgotPassword from "./pages/ForgotPassword";
 import UpdatePassword from "./pages/UpdatePassword";
+import VerifyEmail from "./pages/VerifyEmail";
+import MyProfile from "./components/core/Dashboard/MyProfile";
 
 function App() {
   return (
@@ -50,6 +52,18 @@ function App() {
             </OpenRoute>
           }
         />
+
+        <Route
+          path="verify-email"
+          element={
+            <OpenRoute>
+              <VerifyEmail />
+            </OpenRoute>
+          }
+        />
+
+        {/* Protected Route - for Only Logged in User */}
+        <Route path="dashboard/my-profile" element={<MyProfile />} />
 
         {/* Page Not Found (404 Page ) */}
         <Route path="*" element={<PageNotFound />} />
