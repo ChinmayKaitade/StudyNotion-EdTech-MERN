@@ -9,6 +9,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import MyProfile from "./components/core/Dashboard/MyProfile";
+import About from "./pages/About";
+import "./App.css";
 
 function App() {
   return (
@@ -17,6 +19,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
 
+        <Route path="/about" element={<About />} />
+
+        {/* Open Route - for Only Non Logged in User */}
         <Route
           path="signup"
           element={
