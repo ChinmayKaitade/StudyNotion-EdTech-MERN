@@ -11,6 +11,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import MyProfile from "./components/core/Dashboard/MyProfile";
 import About from "./pages/About";
 import "./App.css";
+import Contact from "./pages/Contact";
 
 function App() {
   return (
@@ -18,8 +19,8 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-
         <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
 
         {/* Open Route - for Only Non Logged in User */}
         <Route
