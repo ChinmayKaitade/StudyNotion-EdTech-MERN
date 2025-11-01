@@ -14,6 +14,7 @@ import "./App.css";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/core/Auth/ProtectedRoute";
+import Settings from "./components/core/Settings/Settings";
 
 function App() {
   return (
@@ -80,9 +81,8 @@ function App() {
           }
         >
           <Route path="dashboard/my-profile" element={<MyProfile />} />
+          <Route path="dashboard/Settings" element={<Settings />} />
         </Route>
-          
-          {/* <Route path="dashboard/my-profile" element={<MyProfile />} /> */}
 
         {/* Page Not Found (404 Page ) */}
         <Route path="*" element={<PageNotFound />} />
