@@ -12,6 +12,8 @@ import MyProfile from "./components/core/Dashboard/MyProfile";
 import About from "./pages/About";
 import "./App.css";
 import Contact from "./pages/Contact";
+import Dashboard from "./pages/Dashboard";
+import ProtectedRoute from "./components/core/Auth/ProtectedRoute";
 
 function App() {
   return (
@@ -69,7 +71,18 @@ function App() {
         />
 
         {/* Protected Route - for Only Logged in User */}
-        <Route path="dashboard/my-profile" element={<MyProfile />} />
+        {/* Dashboard */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard/my-profile" element={<MyProfile />} />
+        </Route>
+          
+          {/* <Route path="dashboard/my-profile" element={<MyProfile />} /> */}
 
         {/* Page Not Found (404 Page ) */}
         <Route path="*" element={<PageNotFound />} />
