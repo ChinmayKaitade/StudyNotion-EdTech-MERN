@@ -15,8 +15,14 @@ import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/core/Auth/ProtectedRoute";
 import Settings from "./components/core/Settings/Settings";
+import { useSelector } from "react-redux";
+import EnrolledCourses from "./components/core/Dashboard/EnrolledCourses";
+
+import { ACCOUNT_TYPE } from "./utils/constants";
 
 function App() {
+  const { user } = useSelector((state) => state.profile);
+
   return (
     <div className="w-screen min-h-screen bg-richblack-900 flex flex-col">
       <Navbar />
@@ -83,6 +89,17 @@ function App() {
           <Route path="dashboard/my-profile" element={<MyProfile />} />
           <Route path="dashboard/Settings" element={<Settings />} />
         </Route>
+
+        {/* Route only for Students */}
+        {/* EnrolledCourses */}
+        {user?.accountType === ACCOUNT_TYPE.STUDENT && (
+          <>
+            <Route
+              path="dashboard/enrolled-courses"
+              element={<EnrolledCourses />}
+            />
+          </>
+        )}
 
         {/* Page Not Found (404 Page ) */}
         <Route path="*" element={<PageNotFound />} />
