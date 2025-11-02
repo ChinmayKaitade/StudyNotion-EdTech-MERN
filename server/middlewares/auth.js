@@ -18,11 +18,25 @@ const User = require("../models/User"); // User model is imported but not strict
 exports.auth = async (req, res, next) => {
   try {
     // 1. Extract the token from multiple possible locations:
-    const token =
-      req.cookies.token || // Check for token in cookies (primary method for web apps)
-      req.body.token || // Check for token in request body
-      req.header("Authorization").replace("Bearer ", ""); // Check for token in Authorization header (common for APIs) // 2. Check if the token exists
+    let token = null;
+    
+    // Check for token in cookies (primary method for web apps)
+    if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+    // Check for token in request body
+    else if (req.body && req.body.token) {
+      token = req.body.token;
+    }
+    // Check for token in Authorization header (common for APIs)
+    else if (req.header("Authorization")) {
+      const authHeader = req.header("Authorization");
+      if (authHeader.startsWith("Bearer ")) {
+        token = authHeader.replace("Bearer ", "");
+      }
+    }
 
+    // 2. Check if the token exists
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -34,8 +48,10 @@ exports.auth = async (req, res, next) => {
       // 3. Verify the token
       // This synchronously verifies the signature using the secret key and checks expiration
       const decode = await jwt.verify(token, process.env.JWT_SECRET);
-      console.log(decode); // Log the decoded payload (user ID, email, role, etc.) // 4. Attach the decoded payload to the request object // This makes user information accessible in all subsequent middleware and controllers
-
+      console.log(decode); // Log the decoded payload (user ID, email, role, etc.) 
+      
+      // 4. Attach the decoded payload to the request object 
+      // This makes user information accessible in all subsequent middleware and controllers
       req.user = decode;
     } catch (error) {
       // Handle errors during token verification (e.g., token expired, invalid signature)
@@ -43,8 +59,9 @@ exports.auth = async (req, res, next) => {
         success: false,
         message: "Invalid Token!",
       });
-    } // 5. If the token is valid, move to the next handler/controller
-
+    } 
+    
+    // 5. If the token is valid, move to the next handler/controller
     next();
   } catch (error) {
     // Handle unexpected errors during the process (e.g., failed to read header)
@@ -72,13 +89,14 @@ exports.isStudent = async (req, res, next) => {
   try {
     // 1. Check the user's role/accountType extracted from the JWT payload
     // If the accountType is NOT "Student", access is denied.
-    if (req.user.accountType != "Student") {
+    if (req.user.accountType !== "Student") {
       return res.status(401).json({
         success: false,
         message: "This is a protected route for Students only",
       });
-    } // 2. If the user is a Student, allow them to proceed to the next handler
-
+    } 
+    
+    // 2. If the user is a Student, allow them to proceed to the next handler
     next();
   } catch (error) {
     // Handle errors that might occur if req.user is missing or incomplete
@@ -103,13 +121,14 @@ exports.isInstructor = async (req, res, next) => {
   try {
     // 1. Check the user's accountType extracted from the decoded JWT payload (req.user)
     // If the accountType is NOT "Instructor", access is denied.
-    if (req.user.accountType != "Instructor") {
+    if (req.user.accountType !== "Instructor") {
       return res.status(401).json({
         success: false,
         message: "This is a protected route for Instructor only",
       });
-    } // 2. If the user is an Instructor, allow them to proceed to the next handler/controller
-
+    } 
+    
+    // 2. If the user is an Instructor, allow them to proceed to the next handler/controller
     next();
   } catch (error) {
     // Handle errors that might occur if req.user is missing or the role field is corrupted
@@ -134,13 +153,14 @@ exports.isAdmin = async (req, res, next) => {
   try {
     // 1. Check the user's accountType extracted from the decoded JWT payload (req.user)
     // If the accountType is NOT "Admin", access is denied.
-    if (req.user.accountType != "Admin") {
+    if (req.user.accountType !== "Admin") {
       return res.status(401).json({
         success: false,
         message: "This is a protected route for Admin only",
       });
-    } // 2. If the user is an Admin, allow them to proceed to the next handler/controller
-
+    } 
+    
+    // 2. If the user is an Admin, allow them to proceed to the next handler/controller
     next();
   } catch (error) {
     // Handle errors that might occur if req.user is missing or the role field is corrupted
