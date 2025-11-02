@@ -20,6 +20,7 @@ import EnrolledCourses from "./components/core/Dashboard/EnrolledCourses";
 
 import { ACCOUNT_TYPE } from "./utils/constants";
 import Cart from "./components/core/Dashboard/Cart/Cart";
+import AddCourse from "./components/core/Dashboard/AddCourse/AddCourse";
 
 function App() {
   const { user } = useSelector((state) => state.profile);
@@ -27,10 +28,11 @@ function App() {
   return (
     <div className="w-screen min-h-screen bg-richblack-900 flex flex-col">
       <Navbar />
+
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
 
         {/* Open Route - for Only Non Logged in User */}
         <Route
@@ -61,19 +63,19 @@ function App() {
         />
 
         <Route
-          path="update-password/:id"
+          path="verify-email"
           element={
             <OpenRoute>
-              <UpdatePassword />
+              <VerifyEmail />
             </OpenRoute>
           }
         />
 
         <Route
-          path="verify-email"
+          path="update-password/:id"
           element={
             <OpenRoute>
-              <VerifyEmail />
+              <UpdatePassword />
             </OpenRoute>
           }
         />
@@ -89,19 +91,27 @@ function App() {
         >
           <Route path="dashboard/my-profile" element={<MyProfile />} />
           <Route path="dashboard/Settings" element={<Settings />} />
-        </Route>
 
-        {/* Route only for Students */}
-        {/* EnrolledCourses */}
-        {user?.accountType === ACCOUNT_TYPE.STUDENT && (
-          <>
-            <Route
-              path="dashboard/enrolled-courses"
-              element={<EnrolledCourses />}
-            />
-            <Route path="dashboard/cart" element={<Cart />} />
-          </>
-        )}
+          {/* Route only for Students */}
+          {/* cart , EnrolledCourses */}
+          {user?.accountType === ACCOUNT_TYPE.STUDENT && (
+            <>
+              <Route path="dashboard/cart" element={<Cart />} />
+              <Route
+                path="dashboard/enrolled-courses"
+                element={<EnrolledCourses />}
+              />
+            </>
+          )}
+
+          {/* Route only for Instructors */}
+          {/* add course , MyCourses, EditCourse*/}
+          {user?.accountType === ACCOUNT_TYPE.INSTRUCTOR && (
+            <>
+              <Route path="dashboard/add-course" element={<AddCourse />} />
+            </>
+          )}
+        </Route>
 
         {/* Page Not Found (404 Page ) */}
         <Route path="*" element={<PageNotFound />} />
