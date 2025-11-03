@@ -23,6 +23,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.4",
     "react-scripts": "5.0.1",
+    "react-super-responsive-table": "^6.0.2",
     "react-type-animation": "^3.2.0",
     "redux-toolkit": "^1.1.2",
     "swiper": "^12.0.3",
