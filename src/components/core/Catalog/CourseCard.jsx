@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import GetAvgRating from "../../../utils/avgRating";
-import RatingStars from "../../common/RatingStar";
+import RatingStars from "../../common/RatingStars";
 import Img from "./../../common/Img";
 
 function CourseCard({ course, Height }) {

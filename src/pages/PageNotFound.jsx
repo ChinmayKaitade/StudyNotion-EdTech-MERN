@@ -8,7 +8,7 @@ const PageNotFound = () => {
         <div>
           <div>
             <div className="text-center">
-              <div className="h-[400px] bg-center bg-[url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif)] ">
+              <div className="h-[400px] bg-center bg-[url(https://cdn.dribbble.com/userupload/45485500/file/72635a61d139d29b26385ccaffbec5ba.gif)] ">
                 <h1 className="text-center text-6xl font-extrabold text-black ">
                   404
                 </h1>
