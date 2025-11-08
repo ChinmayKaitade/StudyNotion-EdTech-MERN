@@ -25,6 +25,8 @@ import MyCourses from "./components/core/Dashboard/MyCourses";
 import EditCourse from "./components/core/Dashboard/EditCourse/EditCourse";
 import Catalog from "./pages/Catalog";
 import CourseDetails from "./pages/CourseDetails";
+import ViewCourse from "./pages/ViewCourse";
+import VideoDetails from "./components/core/ViewCourse/VideoDetails";
 
 function App() {
   const { user } = useSelector((state) => state.profile);
@@ -121,6 +123,22 @@ function App() {
                 element={<EditCourse />}
               />
             </>
+          )}
+        </Route>
+
+        {/* For the watching course lectures */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <ViewCourse />
+            </ProtectedRoute>
+          }
+        >
+          {user?.accountType === ACCOUNT_TYPE.STUDENT && (
+            <Route
+              path="view-course/:courseId/section/:sectionId/sub-section/:subSectionId"
+              element={<VideoDetails />}
+            />
           )}
         </Route>
 
