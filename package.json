@@ -9,10 +9,12 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "chart.js": "^4.5.1",
     "concurrently": "^9.2.1",
     "copy-to-clipboard": "^3.3.3",
     "framer-motion": "^12.23.24",
     "react": "^19.2.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
     "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.65.0",
@@ -37,7 +39,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "server": "cd server && npm run dev",
-    "dev": "concurrently -n \"client,server\" -c \"bgBlue,bgYellow\" \"npm start\" \"npm run server\""
+    "dev": "concurrently -n \"client,server\" -c \"bgCyan.bold,bgMagenta.bold\" \"npm start\" \"npm run server\""
   },
   "eslintConfig": {
     "extends": [

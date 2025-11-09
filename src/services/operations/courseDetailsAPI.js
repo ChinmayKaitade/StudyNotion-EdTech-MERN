@@ -146,10 +146,6 @@ export const addCourseDetails = async (data, token) => {
   const toastId = toast.loading("Loading...");
   let result = null;
 
-  // 🐛 DEBUG STEP: Check the token value
-  console.log("Token received in addCourseDetails:", token);
-  // Should print a long JWT string, not null, undefined, or 'Bearer [token]'
-
   try {
     const response = await apiConnector("POST", CREATE_COURSE_API, data, {
       "Content-Type": "multipart/form-data",
