@@ -241,8 +241,8 @@ export default function CourseInformationForm() {
             Choose a Category
           </option>
           {!loading &&
-            courseCategories?.map((category, indx) => (
-              <option key={indx} value={category?._id}>
+            courseCategories?.map((category, index) => (
+              <option key={index} value={category?._id}>
                 {category?.name}
               </option>
             ))}
@@ -310,7 +310,7 @@ export default function CourseInformationForm() {
             className={`flex cursor-pointer items-center gap-x-2 rounded-md py-[8px] px-[20px] font-semibold
               text-richblack-900 bg-richblack-300 hover:bg-richblack-900 hover:text-richblack-300 duration-300`}
           >
-            Continue Wihout Saving
+            Continue Without Saving
           </button>
         )}
         <IconBtn
