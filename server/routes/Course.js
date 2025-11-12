@@ -12,9 +12,9 @@ const {
   editCourse,
   deleteCourse,
   getInstructorCourses,
-} = require("../controllers/course");
+} = require("../controllers/Course");
 
-const { updateCourseProgress } = require("../controllers/courseProgress");
+const { updateCourseProgress } = require("../controllers/CourseProgress");
 
 // categories Controllers
 const {
@@ -29,21 +29,21 @@ const {
   createSection,
   updateSection,
   deleteSection,
-} = require("../controllers/section");
+} = require("../controllers/Section");
 
 // subSections controllers
 const {
   createSubSection,
   updateSubSection,
   deleteSubSection,
-} = require("../controllers/subSection");
+} = require("../controllers/Subsection");
 
 // rating controllers
 const {
   createRating,
   getAverageRating,
   getAllRatingReview,
-} = require("../controllers/ratingAndReview");
+} = require("../controllers/RatingAndReview");
 
 // Middlewares
 const {

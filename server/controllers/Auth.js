@@ -1,6 +1,6 @@
 // sendOtp , signup , login ,  changePassword
-const User = require("./../models/user");
-const Profile = require("./../models/profile");
+const User = require("./../models/User");
+const Profile = require("../models/Profile");
 const optGenerator = require("otp-generator");
 const OTP = require("../models/OTP");
 const bcrypt = require("bcrypt");
@@ -22,7 +22,7 @@ exports.sendOTP = async (req, res) => {
 
     // if exist then response
     if (checkUserPresent) {
-      console.log("(when otp generate) User alreay registered");
+      console.log("(when otp generate) User already registered");
       return res.status(401).json({
         success: false,
         message: "User is Already Registered",

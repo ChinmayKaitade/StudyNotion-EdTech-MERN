@@ -1,4 +1,4 @@
-const { eventNames } = require("../../models/section");
+const { eventNames } = require("../../models/Section");
 
 const otpTemplate = (otp, name) => {
   return `<!DOCTYPE html>

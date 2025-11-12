@@ -1,7 +1,7 @@
-const Profile = require("../models/profile");
-const User = require("../models/user");
-const CourseProgress = require("../models/courseProgress");
-const Course = require("../models/course");
+const Profile = require("../models/Profile");
+const User = require("../models/User");
+const CourseProgress = require("../models/CourseProgress");
+const Course = require("../models/Course");
 
 const {
   uploadImageToCloudinary,

@@ -11,7 +11,7 @@ const {
   getEnrolledCourses,
   deleteAccount,
   instructorDashboard,
-} = require("../controllers/profile");
+} = require("../controllers/Profile");
 
 // ********************************************************************************************************
 //                                      Profile routes

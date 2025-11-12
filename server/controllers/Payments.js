@@ -7,9 +7,9 @@ const {
 } = require("../mail/templates/courseEnrollmentEmail");
 require("dotenv").config();
 
-const User = require("../models/user");
-const Course = require("../models/course");
-const CourseProgress = require("../models/courseProgress");
+const User = require("../models/User");
+const Course = require("../models/Course");
+const CourseProgress = require("../models/CourseProgress");
 
 const { default: mongoose } = require("mongoose");
 

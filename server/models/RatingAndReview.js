@@ -8,7 +8,7 @@ const ratingAndReviewSchema = new mongoose.Schema({
   },
   rating: {
     type: String,
-    reqired: true,
+    required: true,
   },
   review: {
     type: String,
