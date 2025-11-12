@@ -1,60 +1,61 @@
 import React, { useEffect, useState } from "react";
-// Icons
-// import { FaRegStar, FaStar } from "react-icons/fa"
-// import ReactStars from "react-rating-stars-component"
 import { Link } from "react-router-dom";
 
 import GetAvgRating from "../../../utils/avgRating";
 import RatingStars from "../../common/RatingStars";
-import Img from "./../../common/Img";
+import Img from "../../common/Img";
 
-function CourseCard({ course, Height }) {
-  // const avgReviewCount = GetAvgRating(course.ratingAndReviews)
-  // console.log(course.ratingAndReviews)
+function CourseCard({ course }) {
   const [avgReviewCount, setAvgReviewCount] = useState(0);
+
   useEffect(() => {
     const count = GetAvgRating(course.ratingAndReviews);
     setAvgReviewCount(count);
   }, [course]);
-  // console.log("count............", avgReviewCount)
 
   return (
-    <div className="hover:scale-[1.03] transition-all duration-200 z-50 ">
-      <Link to={`/courses/${course._id}`}>
-        <div className="">
-          <div className="rounded-lg">
-            <Img
-              src={course?.thumbnail}
-              alt="course thumnail"
-              className={`${Height} w-full rounded-xl object-cover `}
-            />
-          </div>
-          <div className="flex flex-col gap-2 px-1 py-3">
-            <p className="text-xl text-richblack-5">{course?.courseName}</p>
-            <p className="text-sm text-richblack-50">
-              {course?.instructor?.firstName} {course?.instructor?.lastName}
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="text-yellow-5">{avgReviewCount || 0}</span>
-              {/* <ReactStars
-                count={5}
-                value={avgReviewCount || 0}
-                size={20}
-                edit={false}
-                activeColor="#ffd700"
-                emptyIcon={<FaRegStar />}
-                fullIcon={<FaStar />}
-              /> */}
-              <RatingStars Review_Count={avgReviewCount} />
-              <span className="text-richblack-400">
-                {course?.ratingAndReviews?.length} Ratings
-              </span>
-            </div>
-            <p className="text-xl text-richblack-5">Rs. {course?.price}</p>
-          </div>
+    <Link to={`/courses/${course._id}`}>
+      <div className="bg-richblack-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer w-full sm:w-72 md:w-80">
+        {/* Course Thumbnail */}
+        <div className="w-full h-40 sm:h-48 md:h-52 overflow-hidden">
+          <Img
+            src={course?.thumbnail}
+            alt={course?.courseName}
+            className="w-full h-full object-cover rounded-t-xl"
+          />
         </div>
-      </Link>
-    </div>
+
+        {/* Course Details */}
+        <div className="p-3 sm:p-4 flex flex-col gap-1.5 sm:gap-2">
+          {/* Course Name */}
+          <p className="text-md sm:text-lg font-semibold text-richblack-5 line-clamp-2">
+            {course?.courseName}
+          </p>
+
+          {/* Instructor Name */}
+          <p className="text-xs sm:text-sm text-richblack-400">
+            {course?.instructor?.firstName} {course?.instructor?.lastName}
+          </p>
+
+          {/* Rating */}
+          <div className="flex items-center gap-1 sm:gap-2 mt-1">
+            <span className="text-yellow-50 font-medium text-sm sm:text-base">
+              {avgReviewCount || 0}
+            </span>
+            <RatingStars Review_Count={avgReviewCount} size={14} />{" "}
+            {/* smaller stars on mobile */}
+            <span className="text-richblack-400 text-xs sm:text-sm">
+              ({course?.ratingAndReviews?.length || 0} Ratings)
+            </span>
+          </div>
+
+          {/* Price */}
+          <p className="text-md sm:text-lg font-semibold text-yellow-50 mt-1 sm:mt-2">
+            Rs. {course?.price}
+          </p>
+        </div>
+      </div>
+    </Link>
   );
 }
 

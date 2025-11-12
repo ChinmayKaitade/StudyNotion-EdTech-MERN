@@ -8,13 +8,14 @@ const contactDetails = [
     icon: "HiChatBubbleLeftRight",
     heading: "Chat on us",
     description: "Our friendly team is here to help.",
-    details: "chinmaykaitade123@gmail.com",
+    details: "info@studynotion.com",
   },
   {
     icon: "BiWorld",
     heading: "Visit us",
     description: "Come and say hello at our office HQ.",
-    details: "Plot No-32 Renuka Niwas, Keshav Nagar, Bhandara- 441904",
+    details:
+      "Akshya Nagar 1st Block 1st Cross, Rammurthy nagar, Bangalore-560016",
   },
   {
     icon: "IoCall",

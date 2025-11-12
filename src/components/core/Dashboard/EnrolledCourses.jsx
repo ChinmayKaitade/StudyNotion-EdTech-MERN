@@ -18,7 +18,7 @@ export default function EnrolledCourses() {
       const res = await getUserEnrolledCourses(token);
       setEnrolledCourses(res);
     } catch (error) {
-      console.log("Unable to fetch Enrolled Courses");
+      console.log("Could not fetch enrolled courses.");
     }
   };
 
@@ -34,7 +34,7 @@ export default function EnrolledCourses() {
           <div className="h-14 w-14 rounded-lg skeleton "></div>
 
           <div className="flex flex-col w-[40%] ">
-            <p className="h-2 w-[50%] rounded-xl skeleton"></p>
+            <p className="h-2 w-[50%] rounded-xl  skeleton"></p>
             <p className="h-2 w-[70%] rounded-xl mt-3 skeleton"></p>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default function EnrolledCourses() {
   };
 
   // return if data is null
-  if (enrolledCourses?.length === 0) {
+  if (enrolledCourses?.length == 0) {
     return (
       <p className="grid h-[50vh] w-full place-content-center text-center text-richblack-5 text-3xl">
         You have not enrolled in any course yet.

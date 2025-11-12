@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+// import CourseCard from "../components/Catalog/CourseCard"
+// import CourseSlider from "../components/Catalog/CourseSlider"
 import Footer from "../components/common/Footer";
 import CourseCard from "../components/core/Catalog/CourseCard";
 import CourseSlider from "../components/core/Catalog/CourseSlider";
@@ -96,7 +98,7 @@ function Catalog() {
             } cursor-pointer`}
             onClick={() => setActive(1)}
           >
-            Most Popular
+            Most Populer
           </p>
           <p
             className={`px-4 py-2 ${
@@ -120,7 +122,9 @@ function Catalog() {
           Top courses in {catalogPageData?.differentCategory?.name}
         </div>
         <div>
-          <CourseSlider Courses={catalogPageData?.differentCategory?.courses} />
+          <CourseSlider
+            Courses={catalogPageData?.differentCategory?.courses}
+          />
         </div>
       </div>
 

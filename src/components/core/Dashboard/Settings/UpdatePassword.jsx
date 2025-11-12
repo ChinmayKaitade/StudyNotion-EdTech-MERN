@@ -57,9 +57,9 @@ export default function UpdatePassword() {
                 className="absolute right-3 top-[38px] z-[10] cursor-pointer"
               >
                 {showOldPassword ? (
-                  <AiOutlineEyeInvisible fontSize={24} fill="#AFB2BF" />
-                ) : (
                   <AiOutlineEye fontSize={24} fill="#AFB2BF" />
+                ) : (
+                  <AiOutlineEyeInvisible fontSize={24} fill="#AFB2BF" />
                 )}
               </span>
 
@@ -90,9 +90,9 @@ export default function UpdatePassword() {
                 className="absolute right-3 top-[38px] z-[10] cursor-pointer"
               >
                 {showNewPassword ? (
-                  <AiOutlineEyeInvisible fontSize={24} fill="#AFB2BF" />
-                ) : (
                   <AiOutlineEye fontSize={24} fill="#AFB2BF" />
+                ) : (
+                  <AiOutlineEyeInvisible fontSize={24} fill="#AFB2BF" />
                 )}
               </span>
               {errors.newPassword && (
@@ -122,9 +122,9 @@ export default function UpdatePassword() {
                 className="absolute right-3 top-[38px] z-[10] cursor-pointer"
               >
                 {showConfirmNewPassword ? (
-                  <AiOutlineEyeInvisible fontSize={24} fill="#AFB2BF" />
-                ) : (
                   <AiOutlineEye fontSize={24} fill="#AFB2BF" />
+                ) : (
+                  <AiOutlineEyeInvisible fontSize={24} fill="#AFB2BF" />
                 )}
               </span>
               {errors.confirmNewPassword && (

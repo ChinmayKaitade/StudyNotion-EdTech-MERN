@@ -203,7 +203,7 @@ const VideoDetails = () => {
           ref={playerRef}
           aspectRatio="16:9"
           playsInline
-          autoPlay
+          autoPlay={false} // ✅ autoplay disabled
           onEnded={() => setVideoEnded(true)}
           src={videoData?.videoUrl}
         >

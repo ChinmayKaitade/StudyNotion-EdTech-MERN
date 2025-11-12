@@ -89,7 +89,7 @@ export default function Instructor() {
     <div>
       <div className="space-y-2">
         <h1 className="text-2xl font-bold text-richblack-5 text-center sm:text-left">
-          Hii {user?.firstName} 👋
+          Hello, {user?.firstName} 👋
         </h1>
         <p className="font-medium text-richblack-200 text-center sm:text-left">
           Let's start something new
@@ -141,6 +141,7 @@ export default function Instructor() {
           </div>
 
           {/* Render 3 courses */}
+          {/* Render 3 courses */}
           <div className="rounded-md bg-richblack-800 p-6">
             <div className="flex items-center justify-between">
               <p className="text-lg font-bold text-richblack-5">Your Courses</p>
@@ -151,35 +152,31 @@ export default function Instructor() {
               </Link>
             </div>
 
-            <div className="my-4 flex flex-col sm:flex-row sm:space-x-6 space-y-6 sm:space-y-0 ">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.slice(0, 3).map((course) => (
-                <div
+                <Link
                   key={course._id}
-                  className="sm:w-1/3 flex flex-col items-center justify-center"
+                  to={`/dashboard/edit-course/${course._id}`}
+                  className="flex flex-col bg-richblack-700 rounded-2xl overflow-hidden shadow-md hover:scale-105 transition-transform duration-300"
                 >
                   <Img
                     src={course.thumbnail}
                     alt={course.courseName}
-                    className="h-[201px] w-full rounded-2xl object-cover"
+                    className="h-48 w-full object-cover"
                   />
 
-                  <div className="mt-3 w-full">
-                    <p className="text-sm font-medium text-richblack-50">
+                  <div className="p-4 flex flex-col gap-2">
+                    <p className="text-sm font-semibold text-richblack-50 truncate">
                       {course.courseName}
                     </p>
-                    <div className="mt-1 flex items-center space-x-2">
-                      <p className="text-xs font-medium text-richblack-300">
-                        {course.studentsEnrolled.length} Students
-                      </p>
-                      <p className="text-xs font-medium text-richblack-300">
-                        |
-                      </p>
-                      <p className="text-xs font-medium text-richblack-300">
-                        Rs. {course.price}
-                      </p>
+
+                    <div className="flex items-center text-xs text-richblack-300 gap-2">
+                      <span>{course.studentsEnrolled.length} students</span>
+                      <span>|</span>
+                      <span>Rs. {course.price}</span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -192,7 +189,7 @@ export default function Instructor() {
 
           <Link to="/dashboard/add-course">
             <p className="mt-1 text-center text-lg font-semibold text-yellow-50">
-              Create a Course
+              Create a course
             </p>
           </Link>
         </div>

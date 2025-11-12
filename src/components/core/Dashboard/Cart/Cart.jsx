@@ -21,7 +21,7 @@ export default function Cart() {
         </div>
       ) : (
         <p className="mt-14 text-center text-3xl text-richblack-100">
-          Your Cart is Empty.
+          Your cart is empty
         </p>
       )}
     </>

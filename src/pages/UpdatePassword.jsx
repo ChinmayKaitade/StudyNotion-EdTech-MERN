@@ -48,7 +48,7 @@ function UpdatePassword() {
           </h1>
 
           <p className="my-4 text-[1.125rem] leading-[1.625rem] text-richblack-100">
-            Almost Done. Enter your new password and you're all set.
+            Almost done. Enter your new password and you're all set.
           </p>
 
           <form onSubmit={handleOnSubmit}>
@@ -73,9 +73,9 @@ function UpdatePassword() {
                 className="absolute right-3 top-[38px] z-[10] cursor-pointer"
               >
                 {showPassword ? (
-                  <AiOutlineEye fontSize={24} fill="#AFB2BF" />
-                ) : (
                   <AiOutlineEyeInvisible fontSize={24} fill="#AFB2BF" />
+                ) : (
+                  <AiOutlineEye fontSize={24} fill="#AFB2BF" />
                 )}
               </span>
             </label>
@@ -101,9 +101,9 @@ function UpdatePassword() {
                 className="absolute right-3 top-[38px] z-[10] cursor-pointer"
               >
                 {showConfirmPassword ? (
-                  <AiOutlineEye fontSize={24} fill="#AFB2BF" />
-                ) : (
                   <AiOutlineEyeInvisible fontSize={24} fill="#AFB2BF" />
+                ) : (
+                  <AiOutlineEye fontSize={24} fill="#AFB2BF" />
                 )}
               </span>
             </label>

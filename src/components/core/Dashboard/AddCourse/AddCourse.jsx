@@ -32,7 +32,7 @@ export default function AddCourse() {
             and assignments.
           </li>
           <li>
-            Information from the Additional Data section shows up on the course
+            Information from the Additional Data section shows up on thecourse
             single page.
           </li>
           <li>Make Announcements to notify any important</li>

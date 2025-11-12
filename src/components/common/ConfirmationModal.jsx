@@ -18,7 +18,8 @@ export default function ConfirmationModal({ modalData }) {
             text={modalData?.btn1Text}
           />
           <button
-            className="cursor-pointer rounded-md bg-richblack-200 text-richblack-900 hover:bg-richblack-900 hover:text-richblack-200 py-[8px] px-[20px] font-semibold duration-300"
+            className="cursor-pointer rounded-md bg-richblack-200 text-richblack-900 hover:bg-richblack-900 hover:text-richblack-200
+                                   py-[8px] px-[20px] font-semibold duration-300"
             onClick={modalData?.btn2Handler}
           >
             {modalData?.btn2Text}

@@ -165,7 +165,7 @@ export default function SubSectionModal({
             />
             {errors.lectureTitle && (
               <span className="ml-2 text-xs tracking-wide text-pink-200">
-                Lecture title is Required
+                Lecture title is required
               </span>
             )}
           </div>
@@ -185,7 +185,7 @@ export default function SubSectionModal({
             />
             {errors.lectureDesc && (
               <span className="ml-2 text-xs tracking-wide text-pink-200">
-                Lecture Description is Required
+                Lecture Description is required
               </span>
             )}
           </div>

@@ -7,7 +7,7 @@ import { sidebarLinks } from "../../../data/dashboard-links";
 import { logout } from "../../../services/operations/authAPI";
 import ConfirmationModal from "../../common/ConfirmationModal";
 import SidebarLink from "./SidebarLink";
-import Loading from "../../common/Loading";
+import Loading from "./../../common/Loading";
 
 import { HiMenuAlt1 } from "react-icons/hi";
 import { IoMdClose } from "react-icons/io";
@@ -19,7 +19,6 @@ export default function Sidebar() {
     (state) => state.profile
   );
   const { loading: authLoading } = useSelector((state) => state.auth);
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -71,7 +70,6 @@ export default function Sidebar() {
           <div className="flex flex-col mt-6">
             {sidebarLinks.map((link) => {
               if (link.type && user?.accountType !== link.type) return null;
-
               return (
                 <SidebarLink
                   key={link.id}

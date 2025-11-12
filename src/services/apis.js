@@ -1,3 +1,8 @@
+// -----------------------------
+// FIX: Use CRA environment variable syntax instead of Vite
+// In CRA, environment variables must start with REACT_APP_ and accessed via process.env
+// Example: process.env.REACT_APP_BASE_URL
+// -----------------------------
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 // AUTH ENDPOINTS
@@ -57,7 +62,7 @@ export const ratingsEndpoints = {
   REVIEWS_DETAILS_API: BASE_URL + "/course/getReviews",
 };
 
-// CATEGORIES API
+// CATAGORIES API
 export const categories = {
   CATEGORIES_API: BASE_URL + "/course/showAllCategories",
 };
@@ -66,7 +71,6 @@ export const categories = {
 export const catalogData = {
   CATALOGPAGEDATA_API: BASE_URL + "/course/getCategoryPageDetails",
 };
-
 // CONTACT-US API
 export const contactusEndpoint = {
   CONTACT_US_API: BASE_URL + "/reach/contact",

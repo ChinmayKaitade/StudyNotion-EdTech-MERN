@@ -1,137 +1,131 @@
-const User = require("../models/User");
+const User = require("../models/user");
 const mailSender = require("../utils/mailSender");
-const crypto = require("crypto"); // Used for secure token generation (crypto.randomUUID)
-const bcrypt = require("bcrypt"); // Used for password hashing and security
+const crypto = require("crypto");
+const bcrypt = require("bcrypt");
 
-// --------------------------------------------------------------------------------
-// 📧 RESET PASSWORD TOKEN (Forgot Password - Step 1)
-// --------------------------------------------------------------------------------
-
-/**
- * @async
- * @function resetPasswordToken
- * @description Initiates the password reset process. It validates the user's email,
- * generates a temporary, unique token, sets a 5-minute expiration time, saves these details
- * to the User model, and sends the password reset link to the user's email.
- * @param {object} req - Express request object (expects 'email' in req.body).
- * @param {object} res - Express response object.
- */
+// ================ resetPasswordToken ================
 exports.resetPasswordToken = async (req, res) => {
   try {
-    // 1. Get email from the request body
-    const email = req.body.email; // 2. Check if the user exists in the database
+    // extract email
+    const { email } = req.body;
 
-    const user = await User.findOne({ email: email }); // If the user is not found, return an error
+    // email validation
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Your Email is not registered with us, Please Register",
+        message: "Your Email is not registered with us",
       });
-    } // 3. Generate a unique, secure token
+    }
 
-    const token = crypto.randomUUID(); // 4. Update user document with the new token and expiration time
+    // generate token
+    const token = crypto.randomBytes(20).toString("hex");
 
-    const updatedDetails = await User.findOneAndUpdate(
-      { email: email }, // Query: Find the user by email
-      {
-        token: token, // Set the generated token // Set expiration to 5 minutes from now (5 * 60 * 1000 milliseconds)
-        resetPasswordExpires: Date.now() + 5 * 60 * 1000,
-      },
-      {
-        new: true, // Option to return the updated document
-      }
-    ); // 5. Create the password reset URL for the frontend
+    // update user by adding token & token expire date
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email },
+      { token: token, resetPasswordTokenExpires: Date.now() + 5 * 60 * 1000 },
+      { new: true }
+    ); // by marking true, it will return updated user
 
-    const url = `http://localhost:3000/update-password/${token}`; // 6. Send the password reset email to the user
+    // create url
+    const url = `https://study-notion-mern-stack.netlify.app/update-password/${token}`;
 
+    // send email containing url
     await mailSender(
       email,
       "Password Reset Link",
-      `Password Reset Link: ${url}` // Email body content
-    ); // 7. Return success response
+      `Password Reset Link : ${url}`
+    );
 
-    return res.status(200).json({
+    // return succes response
+    res.status(200).json({
       success: true,
       message:
-        "Email Sent Successfully!👍, Please check your email and change password",
+        "Email sent successfully , Please check your mail box and change password",
     });
   } catch (error) {
-    // Handle server/email sending failures
+    console.log("Error while creating token for reset password");
     console.log(error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: "Something went wrong!😥 While sending password reset link",
+      error: error.message,
+      message: "Error while creating token for reset password",
     });
   }
 };
 
-// --------------------------------------------------------------------------------
-// 🔑 PASSWORD RESET (Forgot Password - Step 2)
-// --------------------------------------------------------------------------------
-
-/**
- * @async
- * @function resetPassword
- * @description Completes the password reset process. It validates the token's existence and expiration,
- * verifies the password confirmation, hashes the new password, and updates the user's document.
- * @param {object} req - Express request object (expects password, confirmPassword, and token in req.body).
- * @param {object} res - Express response object.
- */
+// ================ resetPassword ================
 exports.resetPassword = async (req, res) => {
   try {
-    // 1. Extract necessary data from the request body
-    const { password, confirmPassword, token } = req.body; // 2. Validate password confirmation
+    // extract data
+    // extract token by anyone from this 3 ways
+    const token =
+      req.body?.token ||
+      req.cookies?.token ||
+      req.header("Authorization")?.replace("Bearer ", "");
 
-    if (password != confirmPassword) {
+    const { password, confirmPassword } = req.body;
+
+    // validation
+    if (!token || !password || !confirmPassword) {
       return res.status(401).json({
         success: false,
-        message: "Password does not match",
+        message: "All fiels are required...!",
       });
-    } // 3. Find user by the token
+    }
 
-    const userDetails = await User.findOne({ token: token }); // 4. Validate token existence
-
-    if (!userDetails) {
+    // validate both passwords
+    if (password !== confirmPassword) {
       return res.status(401).json({
         success: false,
-        message: "Invalid Token",
+        message: "Passowrds are not matched",
       });
-    } // 5. Validate token expiration time
+    }
 
-    if (userDetails.resetPasswordExpires < Date.now()) {
+    // find user by token from DB
+    const userDetails = await User.findOne({ token: token });
+
+    // check ==> is this needed or not ==> for security
+    if (token !== userDetails.token) {
       return res.status(401).json({
         success: false,
-        message: "Token Expired, Please Re-generate your Token",
+        message: "Password Reset token is not matched",
       });
-    } // 6. Hash the new password for security
+    }
 
-    const hashedPassword = await bcrypt.hash(password, 10); // 7. Update the user's password in the database
+    // console.log('userDetails.resetPasswordExpires = ', userDetails.resetPasswordExpires);
 
+    // check token is expire or not
+    if (!(userDetails.resetPasswordTokenExpires > Date.now())) {
+      return res.status(401).json({
+        success: false,
+        message: "Token is expired, please regenerate token",
+      });
+    }
+
+    // hash new passoword
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // update user with New Password
     await User.findOneAndUpdate(
-      {
-        token: token, // Query: Find the user using the valid token
-      },
-      {
-        password: hashedPassword, // Set the new hashed password // Clear the token and expiration fields immediately after use for security
-        token: null,
-        resetPasswordExpires: null,
-      },
-      {
-        new: true,
-      }
-    ); // 8. Return success response
+      { token },
+      { password: hashedPassword },
+      { new: true }
+    );
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      message: "Password Reset Successfully!👍",
+      message: "Password reset successfully",
     });
   } catch (error) {
-    // Handle server/database update failures
+    console.log("Error while reseting password");
     console.log(error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: "Something went wrong!😥 While processing password reset.",
+      error: error.message,
+      message: "Error while reseting password12",
     });
   }
 };

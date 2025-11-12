@@ -57,13 +57,13 @@ const ContactUsForm = () => {
             type="text"
             name="firstname"
             id="firstname"
-            placeholder="Enter Your First Name"
+            placeholder="Enter first name"
             className="form-style"
             {...register("firstname", { required: true })}
           />
           {errors.firstname && (
             <span className="-mt-1 text-[12px] text-yellow-100">
-              Please Enter Your First Name
+              Please enter your name.
             </span>
           )}
         </div>
@@ -76,7 +76,7 @@ const ContactUsForm = () => {
             type="text"
             name="lastname"
             id="lastname"
-            placeholder="Enter Your Last Name"
+            placeholder="Enter last name"
             className="form-style"
             {...register("lastname")}
           />
@@ -91,13 +91,13 @@ const ContactUsForm = () => {
           type="email"
           name="email"
           id="email"
-          placeholder="Enter Your Email Address"
+          placeholder="Enter email address"
           className="form-style"
           {...register("email", { required: true })}
         />
         {errors.email && (
           <span className="-mt-1 text-[12px] text-yellow-100">
-            Please Enter Your Email Address.
+            Please enter your Email address.
           </span>
         )}
       </div>
@@ -110,8 +110,10 @@ const ContactUsForm = () => {
         <div className="flex gap-5">
           <div className="flex w-[81px] flex-col gap-2">
             <select
-              name="dropdown"
-              id="dropdown"
+              type="text"
+              name="firstname"
+              id="firstname"
+              placeholder="Enter first name"
               className="form-style"
               {...register("countrycode", { required: true })}
             >
@@ -135,7 +137,7 @@ const ContactUsForm = () => {
               {...register("phoneNo", {
                 required: {
                   value: true,
-                  message: "Please Enter Your Phone Number.",
+                  message: "Please enter your Phone Number.",
                 },
                 maxLength: { value: 12, message: "Invalid Phone Number" },
                 minLength: { value: 10, message: "Invalid Phone Number" },
@@ -145,7 +147,7 @@ const ContactUsForm = () => {
         </div>
         {errors.phoneNo && (
           <span className="-mt-1 text-[12px] text-yellow-100">
-            Please Enter Valid Phone Number.
+            {errors.phoneNo.message}
           </span>
         )}
       </div>
@@ -159,13 +161,13 @@ const ContactUsForm = () => {
           id="message"
           cols="30"
           rows="7"
-          placeholder="Enter Your Message Here"
+          placeholder="Enter your message here"
           className="form-style"
           {...register("message", { required: true })}
         />
         {errors.message && (
           <span className="-mt-1 text-[12px] text-yellow-100">
-            Please Enter Your Message.
+            Please enter your Message.
           </span>
         )}
       </div>

@@ -1,189 +1,208 @@
-const Profile = require("../models/Profile");
-const User = require("../models/User");
-const Course = require("../models/Course");
-const { uploadImageToCloudinary } = require("../utils/imageUploader"); // Assuming this utility exists
+const Profile = require("../models/profile");
+const User = require("../models/user");
+const CourseProgress = require("../models/courseProgress");
+const Course = require("../models/course");
 
-// --------------------------------------------------------------------------------
-// ✏️ UPDATE PROFILE (User Details & Additional Details)
-// --------------------------------------------------------------------------------
+const {
+  uploadImageToCloudinary,
+  deleteResourceFromCloudinary,
+} = require("../utils/imageUploader");
+const { convertSecondsToDuration } = require("../utils/secToDuration");
 
-/**
- * @async
- * @function updateProfile
- * @description Updates both the core User document (firstName, lastName) and the linked
- * Profile document (gender, DOB, contact, about).
- * NOTE: This route must be protected by the 'auth' middleware.
- * @param {object} req - Express request object (expects profile/user details in req.body, user ID in req.user.id).
- * @param {object} res - Express response object.
- */
+// ================ update Profile ================
 exports.updateProfile = async (req, res) => {
   try {
-    // 1. Destructure data from the request body
+    // extract data
     const {
+      gender = "",
       dateOfBirth = "",
       about = "",
       contactNumber = "",
       firstName,
       lastName,
-      gender = "",
     } = req.body;
-    const id = req.user.id;
 
-    // 2. Find the profile documents
-    const userDetails = await User.findById(id);
-    const profile = await Profile.findById(userDetails.additionalDetails);
+    // extract userId
+    const userId = req.user.id;
 
-    // NOTE: Optional validation for contactNumber/gender can be added here.
+    // find profile
+    const userDetails = await User.findById(userId);
+    const profileId = userDetails.additionalDetails;
+    const profileDetails = await Profile.findById(profileId);
 
-    // 3. Update the fields using logical OR for partial updates
-    // Update User fields
-    userDetails.firstName = firstName || userDetails.firstName;
-    userDetails.lastName = lastName || userDetails.lastName;
+    // console.log('User profileDetails -> ', profileDetails);
 
-    // Update Profile fields
-    profile.dateOfBirth = dateOfBirth || profile.dateOfBirth;
-    profile.about = about || profile.about;
-    profile.gender = gender || profile.gender;
-    profile.contactNumber = contactNumber || profile.contactNumber;
-
-    // 4. Save both updated documents
-    await profile.save();
+    // Update the profile fields
+    userDetails.firstName = firstName;
+    userDetails.lastName = lastName;
     await userDetails.save();
 
-    // 5. Return success response
-    return res.status(200).json({
+    profileDetails.gender = gender;
+    profileDetails.dateOfBirth = dateOfBirth;
+    profileDetails.about = about;
+    profileDetails.contactNumber = contactNumber;
+
+    // save data to DB
+    await profileDetails.save();
+
+    const updatedUserDetails = await User.findById(userId).populate({
+      path: "additionalDetails",
+    });
+    // console.log('updatedUserDetails -> ', updatedUserDetails);
+
+    // return response
+    res.status(200).json({
       success: true,
-      message: "Profile updated successfully!👍",
-      profile,
-      userDetails,
+      updatedUserDetails,
+      message: "Profile updated successfully",
     });
   } catch (error) {
-    console.error("Error updating profile:", error);
-    return res.status(500).json({
+    console.log("Error while updating profile");
+    console.log(error);
+    res.status(500).json({
       success: false,
-      message: "Internal Server Error: Could not update profile.",
       error: error.message,
+      message: "Error while updating profile",
     });
   }
 };
 
-// --------------------------------------------------------------------------------
-// ❌ DELETE ACCOUNT
-// --------------------------------------------------------------------------------
-
-/**
- * @async
- * @function deleteProfile
- * @description Permanently deletes the user account and performs critical cleanup (Profile, Course enrollments).
- * NOTE: This route must be protected by the 'auth' and likely the 'isDemo' middleware.
- * @param {object} req - Express request object (expects user ID in req.user.id).
- * @param {object} res - Express response object.
- */
-exports.deleteProfile = async (req, res) => {
+// ================ delete Account ================
+exports.deleteAccount = async (req, res) => {
   try {
-    const id = req.user.id;
-    const user = await User.findById({ _id: id });
-    if (!user) {
+    // extract user id
+    const userId = req.user.id;
+    // console.log('userId = ', userId)
+
+    // validation
+    const userDetails = await User.findById(userId);
+    if (!userDetails) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
 
-    // 1. Delete the associated Profile
-    await Profile.findByIdAndDelete({ _id: user.additionalDetails });
+    // delete user profile picture From Cloudinary
+    await deleteResourceFromCloudinary(userDetails.image);
 
-    // 2. Resolve TODO: Unenroll User From All the Enrolled Courses
-    for (const courseId of user.courses) {
-      // Find each course and remove the user's ID from the 'studentsEnrolled' array
-      await Course.findByIdAndUpdate(
-        courseId,
-        { $pull: { studentsEnrolled: id } },
-        { new: true }
-      );
+    // if any student delete their account && enrollded in any course then ,
+    // student entrolled in particular course sholud be decreae by one
+    // user - courses - studentsEnrolled
+    const userEnrolledCoursesId = userDetails.courses;
+    console.log("userEnrolledCourses ids = ", userEnrolledCoursesId);
+
+    for (const courseId of userEnrolledCoursesId) {
+      await Course.findByIdAndUpdate(courseId, {
+        $pull: { studentsEnrolled: userId },
+      });
     }
 
-    // 3. Delete the User document
-    await User.findByIdAndDelete({ _id: id });
+    // first - delete profie (profileDetails)
+    await Profile.findByIdAndDelete(userDetails.additionalDetails);
 
+    // second - delete account
+    await User.findByIdAndDelete(userId);
+
+    // sheduale this deleting account , crone job
+
+    // return response
     res.status(200).json({
       success: true,
-      message: "User deleted successfully!👍 All associated data cleaned up.",
+      message: "Account deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting account:", error);
+    console.log("Error while updating profile");
+    console.log(error);
     res.status(500).json({
       success: false,
-      message: "User Cannot be deleted successfully",
       error: error.message,
+      message: "Error while deleting profile",
     });
   }
 };
 
-// --------------------------------------------------------------------------------
-// 🔍 GET ALL USER DETAILS (Core Profile Fetch)
-// --------------------------------------------------------------------------------
-
-/**
- * @async
- * @function getAllUserDetails
- * @description Fetches the core User document and populates the linked Profile document.
- * @param {object} req - Express request object (expects user ID in req.user.id).
- * @param {object} res - Express response object.
- */
-exports.getAllUserDetails = async (req, res) => {
+// ================ get details of user ================
+exports.getUserDetails = async (req, res) => {
   try {
-    const id = req.user.id;
+    // extract userId
+    const userId = req.user.id;
+    console.log("id - ", userId);
 
-    // Fetch User and populate their additionalDetails (Profile)
-    const userDetails = await User.findById(id)
+    // get user details
+    const userDetails = await User.findById(userId)
       .populate("additionalDetails")
       .exec();
 
+    // return response
     res.status(200).json({
       success: true,
-      message: "User Data fetched successfully!👍",
       data: userDetails,
+      message: "User data fetched successfully",
     });
   } catch (error) {
-    console.error("Error fetching user details:", error);
-    return res.status(500).json({
+    console.log("Error while fetching user details");
+    console.log(error);
+    res.status(500).json({
       success: false,
-      message: "Internal Server Error: Could not fetch user data.",
       error: error.message,
+      message: "Error while fetching user details",
     });
   }
 };
 
-// --------------------------------------------------------------------------------
-// 🎒 GET ENROLLED COURSES (Student View)
-// --------------------------------------------------------------------------------
+// ================ Update User profile Image ================
+exports.updateUserProfileImage = async (req, res) => {
+  try {
+    const profileImage = req.files?.profileImage;
+    const userId = req.user.id;
 
-/**
- * @async
- * @function getEnrolledCourses
- * @description Fetches all courses a student is currently enrolled in, along with their progress.
- * The query performs deep population to provide the entire course content structure.
- * @param {object} req - Express request object (expects user ID in req.user.id).
- * @param {object} res - Express response object.
- */
+    // validation
+    // console.log('profileImage = ', profileImage)
+
+    // upload imga eto cloudinary
+    const image = await uploadImageToCloudinary(
+      profileImage,
+      process.env.FOLDER_NAME,
+      1000,
+      1000
+    );
+
+    // console.log('image url - ', image);
+
+    // update in DB
+    const updatedUserDetails = await User.findByIdAndUpdate(
+      userId,
+      { image: image.secure_url },
+      { new: true }
+    ).populate({
+      path: "additionalDetails",
+    });
+
+    // success response
+    res.status(200).json({
+      success: true,
+      message: `Image Updated successfully`,
+      data: updatedUserDetails,
+    });
+  } catch (error) {
+    console.log("Error while updating user profile image");
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Error while updating user profile image",
+    });
+  }
+};
+
+// ================ Get Enrolled Courses ================
 exports.getEnrolledCourses = async (req, res) => {
   try {
-    const id = req.user.id;
-    const user = await User.findById(id);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Fetch User and deeply populate their enrolled courses and progress
-    const enrolledCourses = await User.findById(id)
+    const userId = req.user.id;
+    let userDetails = await User.findOne({ _id: userId })
       .populate({
         path: "courses",
-        // Deep population for course content: Section -> SubSection
         populate: {
           path: "courseContent",
           populate: {
@@ -191,130 +210,150 @@ exports.getEnrolledCourses = async (req, res) => {
           },
         },
       })
-      .populate("courseProgress")
       .exec();
 
-    res.status(200).json({
+    userDetails = userDetails.toObject();
+
+    var SubsectionLength = 0;
+    for (var i = 0; i < userDetails.courses.length; i++) {
+      let totalDurationInSeconds = 0;
+      SubsectionLength = 0;
+      for (var j = 0; j < userDetails.courses[i].courseContent.length; j++) {
+        totalDurationInSeconds += userDetails.courses[i].courseContent[
+          j
+        ].subSection.reduce(
+          (acc, curr) => acc + parseInt(curr.timeDuration),
+          0
+        );
+
+        userDetails.courses[i].totalDuration = convertSecondsToDuration(
+          totalDurationInSeconds
+        );
+        SubsectionLength +=
+          userDetails.courses[i].courseContent[j].subSection.length;
+      }
+
+      let courseProgressCount = await CourseProgress.findOne({
+        courseID: userDetails.courses[i]._id,
+        userId: userId,
+      });
+
+      courseProgressCount = courseProgressCount?.completedVideos.length;
+
+      if (SubsectionLength === 0) {
+        userDetails.courses[i].progressPercentage = 100;
+      } else {
+        // To make it up to 2 decimal point
+        const multiplier = Math.pow(10, 2);
+        userDetails.courses[i].progressPercentage =
+          Math.round(
+            (courseProgressCount / SubsectionLength) * 100 * multiplier
+          ) / multiplier;
+      }
+    }
+
+    if (!userDetails) {
+      return res.status(400).json({
+        success: false,
+        message: `Could not find user with id: ${userDetails}`,
+      });
+    }
+
+    return res.status(200).json({
       success: true,
-      message: "Enrolled courses fetched successfully!👍",
-      data: enrolledCourses,
+      data: userDetails.courses,
     });
   } catch (error) {
-    console.error("Error fetching enrolled courses:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error: Could not fetch enrolled courses.",
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
-// --------------------------------------------------------------------------------
-// 🖼️ UPDATE DISPLAY PICTURE (Avatar)
-// --------------------------------------------------------------------------------
-
-/**
- * @async
- * @function updateDisplayPicture
- * @description Handles the upload of a new profile picture (pfp) to Cloudinary and updates the User document.
- * @param {object} req - Express request object (expects image file 'pfp' in req.files, user ID in req.user.id).
- * @param {object} res - Express response object.
- */
-exports.updateDisplayPicture = async (req, res) => {
-  try {
-    const id = req.user.id;
-    const user = await User.findById(id);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    const image = req.files.displayPicture;
-
-    if (!image) {
-      return res.status(404).json({
-        success: false,
-        message: "Image file (displayPicture) not found in request",
-      });
-    }
-
-    // Upload the image to Cloudinary
-    const uploadDetails = await uploadImageToCloudinary(
-      image,
-      process.env.FOLDER_NAME // Assuming FOLDER_NAME is the upload folder
-    );
-
-    // Update the User document with the new image URL
-    const updatedImage = await User.findByIdAndUpdate(
-      { _id: id },
-      { image: uploadDetails.secure_url },
-      { new: true }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Profile picture updated successfully!🖼️",
-      data: updatedImage,
-    });
-  } catch (error) {
-    console.error("Error updating display picture:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error: Could not update display picture.",
-      error: error.message,
-    });
-  }
-};
-
-// --------------------------------------------------------------------------------
-// 📊 INSTRUCTOR DASHBOARD
-// --------------------------------------------------------------------------------
-
-/**
- * @async
- * @function instructorDashboard
- * @description Fetches performance metrics for an instructor's courses (total students, total revenue).
- * NOTE: This route must be protected by 'auth' and 'isInstructor' middleware.
- * @param {object} req - Express request object (expects user ID in req.user.id).
- * @param {object} res - Express response object.
- */
+// ================ instructor Dashboard ================
 exports.instructorDashboard = async (req, res) => {
   try {
-    const id = req.user.id;
+    const courseDetails = await Course.find({ instructor: req.user.id });
 
-    // Find all courses created by the instructor
-    const courseData = await Course.find({ instructor: id });
+    const courseData = courseDetails.map((course) => {
+      const totalStudentsEnrolled = course.studentsEnrolled.length;
+      const totalAmountGenerated = totalStudentsEnrolled * course.price;
 
-    // Calculate metrics for each course
-    const courseDetails = courseData.map((course) => {
-      const totalStudents = course?.studentsEnrolled?.length || 0;
-      // Revenue is calculated by multiplying price by the number of enrolled students
-      const totalRevenue = course?.price * totalStudents;
-
-      const courseStats = {
+      // Create a new object with the additional fields
+      const courseDataWithStats = {
         _id: course._id,
         courseName: course.courseName,
         courseDescription: course.courseDescription,
-        totalStudents,
-        totalRevenue,
+        // Include other course properties as needed
+        totalStudentsEnrolled,
+        totalAmountGenerated,
       };
-      return courseStats;
+
+      return courseDataWithStats;
     });
 
     res.status(200).json({
-      success: true,
-      message: "Instructor dashboard data fetched successfully!📈",
-      data: courseDetails,
+      courses: courseData,
+      message: "Instructor Dashboard Data fetched successfully",
     });
   } catch (error) {
-    console.error("Error fetching instructor dashboard:", error);
-    return res.status(500).json({
-      success: false,
-      message:
-        "Internal Server Error: Could not fetch instructor dashboard data.",
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// ================ get All Students ================
+exports.getAllStudents = async (req, res) => {
+  try {
+    const allStudentsDetails = await User.find({
+      accountType: "Student",
+    })
+      .populate("additionalDetails")
+      .populate("courses")
+      .sort({ createdAt: -1 });
+
+    const studentsCount = await User.countDocuments({
+      accountType: "Student",
+    });
+
+    res.status(200).json({
+      allStudentsDetails,
+      studentsCount,
+      message: "All Students Data fetched successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Error while fetching all students",
+      error: error.message,
+    });
+  }
+};
+
+// ================ get All Instructors ================
+exports.getAllInstructors = async (req, res) => {
+  try {
+    const allInstructorsDetails = await User.find({
+      accountType: "Instructor",
+    })
+      .populate("additionalDetails")
+      .populate("courses")
+      .sort({ createdAt: -1 });
+
+    const instructorsCount = await User.countDocuments({
+      accountType: "Instructor",
+    });
+
+    res.status(200).json({
+      allInstructorsDetails,
+      instructorsCount,
+      message: "All Instructors Data fetched successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Error while fetching all Instructors",
       error: error.message,
     });
   }

@@ -1,163 +1,128 @@
-const Section = require("../models/Section");
-const Course = require("../models/Course");
+const Course = require("../models/course");
+const Section = require("../models/section");
 
-// --------------------------------------------------------------------------------
-// ➕ CREATE SECTION (Module/Chapter)
-// --------------------------------------------------------------------------------
-
-/**
- * @async
- * @function createSection
- * @description Controller function for creating a new Section (module) for a course.
- * It creates the Section document and pushes its ID into the corresponding Course's 'courseContent' array.
- * NOTE: This route should be protected by 'auth' and 'isInstructor' middleware.
- * @param {object} req - Express request object (expects 'sectionName' and 'courseId' in req.body).
- * @param {object} res - Express response object.
- */
+// ================ create Section ================
 exports.createSection = async (req, res) => {
   try {
-    // 1. Extract necessary data
-    const { sectionName, courseId } = req.body; // 2. Validation: Check if mandatory fields are missing
+    // extract data
+    const { sectionName, courseId } = req.body;
+    // console.log('sectionName, courseId = ', sectionName, ",  = ", courseId)
 
+    // validation
     if (!sectionName || !courseId) {
       return res.status(400).json({
         success: false,
-        message:
-          "Missing Properties. All fields are required (sectionName and courseId)",
+        message: "All fields are required",
       });
-    } // 3. Create the new Section in the database
+    }
 
-    const newSection = await Section.create({ sectionName }); // 4. Update the Course document // Find the parent Course by ID and push the new Section's ID into its 'courseContent' array
+    // create entry in DB
+    const newSection = await Section.create({ sectionName });
 
-    const updatedCourseDetails = await Course.findByIdAndUpdate(
+    // link - section id to current course
+    const updatedCourse = await Course.findByIdAndUpdate(
       courseId,
       {
         $push: {
-          courseContent: newSection._id, // Add the reference to the new Section
-        },
-      },
-      { new: true } // Return the updated Course document
-    ); // NOTE: For the frontend to properly display the updated course, it should // fully populate the returned updatedCourseDetails (e.g., populate('courseContent').populate('subSection')). // 5. Return success response
-
-    return res.status(200).json({
-      success: true,
-      message: "Section Created Successfully!👍",
-      updatedCourseDetails, // Return the updated course structure
-    });
-  } catch (error) {
-    // 6. Handle server or database errors
-    console.error("Error creating section:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Unable to create section. Please try again",
-      error: error.message,
-    });
-  }
-};
-
-// --------------------------------------------------------------------------------
-// ✏️ UPDATE SECTION (Module/Chapter)
-// --------------------------------------------------------------------------------
-
-/**
- * @async
- * @function updateSection
- * @description Controller function for updating the name of an existing Section (module).
- * It validates required IDs and updates the Section document directly.
- * NOTE: This route should be protected by 'auth' and 'isInstructor' middleware.
- * @param {object} req - Express request object (expects 'sectionName' and 'sectionId' in req.body).
- * @param {object} res - Express response object.
- */
-exports.updateSection = async (req, res) => {
-  try {
-    // 1. Extract necessary data
-    const { sectionName, sectionId } = req.body; // 2. Validation: Check if mandatory fields are missing
-
-    if (!sectionName || !sectionId) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Missing Properties. All fields are required (sectionName and sectionId)",
-      });
-    } // 3. Update the Section document
-
-    const section = await Section.findByIdAndUpdate(
-      sectionId,
-      { sectionName }, // Update payload: set the new sectionName
-      { new: true } // Return the updated document
-    ); // 4. Return success response
-
-    res.status(200).json({
-      success: true,
-      message: "Section Updated Successfully!👍",
-      data: section, // Return the updated section details
-    });
-  } catch (error) {
-    // 5. Handle server or database errors
-    console.error("Error updating section:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Unable to update section. Please try again",
-      error: error.message,
-    });
-  }
-};
-
-// --------------------------------------------------------------------------------
-// ❌ DELETE SECTION (Module/Chapter)
-// --------------------------------------------------------------------------------
-
-/**
- * @async
- * @function deleteSection
- * @description Controller function for deleting a Section (module).
- * It performs two critical steps: deletes the Section document and removes its ID from the parent Course.
- * NOTE: It should ideally also delete all associated SubSections (lessons).
- * @param {object} req - Express request object (expects 'sectionId' in req.params).
- * @param {object} res - Express response object.
- */
-exports.deleteSection = async (req, res) => {
-  try {
-    // 1. Get the section ID from the URL parameters
-    const { sectionId } = req.params; // 3. Delete the Section document
-
-    // NOTE: The request should ideally also include 'courseId' in the body
-    // for a more efficient and secure removal from the parent course.
-
-    // 2. Find the section to get necessary info before deleting (if needed for cleanup)
-    // For simplicity, we skip fetching related SubSections here, but cleanup is vital.
-
-    const deletedSection = await Section.findByIdAndDelete(sectionId);
-
-    // 4. Update the Course document (Remove the reference)
-    // Find the Course that contains this section and pull the reference
-    await Course.findOneAndUpdate(
-      { courseContent: sectionId }, // Find the course where the sectionId exists in the array
-      {
-        $pull: {
-          courseContent: sectionId, // Remove the section ID from the courseContent array
+          courseContent: newSection._id,
         },
       },
       { new: true }
-    ); // 5. Return success response
+    );
 
-    // NOTE: A mandatory step is to delete all associated SubSections (lessons)
-    // within the deleted Section to prevent orphaned SubSection documents.
-    // Example cleanup:
-    /* await SubSection.deleteMany({ _id: { $in: deletedSection.subSection } });
-     */
+    const updatedCourseDetails = await Course.findById(courseId).populate({
+      path: "courseContent",
+      populate: {
+        path: "subSection",
+      },
+    });
 
-    return res.status(200).json({
+    // above -- populate remaining
+
+    res.status(200).json({
       success: true,
-      message: "Section Deleted Successfully!👍",
+      updatedCourseDetails,
+      message: "Section created successfully",
     });
   } catch (error) {
-    // 6. Handle server or database errors
-    console.error("Error deleting section:", error);
-    return res.status(500).json({
+    console.log("Error while creating section");
+    console.log(error);
+    res.status(500).json({
       success: false,
-      message: "Unable to delete section. Please try again",
       error: error.message,
+      message: "Error while creating section",
+    });
+  }
+};
+
+// ================ update Section ================
+exports.updateSection = async (req, res) => {
+  try {
+    // extract data
+    const { sectionName, sectionId, courseId } = req.body;
+
+    // validation
+    if (!sectionId) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    // update section name in DB
+    await Section.findByIdAndUpdate(sectionId, { sectionName }, { new: true });
+
+    const updatedCourseDetails = await Course.findById(courseId).populate({
+      path: "courseContent",
+      populate: {
+        path: "subSection",
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: updatedCourseDetails,
+      message: "Section updated successfully",
+    });
+  } catch (error) {
+    console.log("Error while updating section");
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Error while updating section",
+    });
+  }
+};
+
+// ================ Delete Section ================
+exports.deleteSection = async (req, res) => {
+  try {
+    const { sectionId, courseId } = req.body;
+    // console.log('sectionId = ', sectionId);
+
+    // delete section by id from DB
+    await Section.findByIdAndDelete(sectionId);
+
+    const updatedCourseDetails = await Course.findById(courseId).populate({
+      path: "courseContent",
+      populate: {
+        path: "subSection",
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: updatedCourseDetails,
+      message: "Section deleted successfully",
+    });
+  } catch (error) {
+    console.log("Error while deleting section");
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Error while deleting section",
     });
   }
 };

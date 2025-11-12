@@ -1,19 +1,33 @@
 import React from "react";
-import Instructor from "../../../assets/Images/Instructor.png";
+import Instructor from "../../../assets/Images/teacher3.png";
 import HighlightText from "./HighlightText";
 import CTAButton from "../HomePage/Button";
 import { FaArrowRight } from "react-icons/fa";
+import Img from "./../../common/Img";
+
+import { motion } from "framer-motion";
+import { scaleUp } from "../../common/MotionFrameVariants";
 
 const InstructorSection = () => {
   return (
-    <div className="mt-16">
-      <div className="flex gap-20 items-center">
-        <div className="w-[50%]">
-          <img src={Instructor} alt="" className="shadow-white" />
-        </div>
+    <div>
+      <div className="flex flex-col-reverse lg:flex-row gap-10 lg:gap-20 items-center">
+        <motion.div
+          variants={scaleUp}
+          initial="hidden"
+          whileInView={"show"}
+          viewport={{ once: false, amount: 0.1 }}
+          className="lg:w-[50%] "
+        >
+          <Img
+            src={Instructor}
+            alt="Instructor"
+            className="shadow-white rounded-3xl"
+          />
+        </motion.div>
 
-        <div className="w-[50%] flex flex-col gap-10">
-          <div className="text-4xl font-semibold w-[50%]">
+        <div className="lg:w-[50%] flex flex-col">
+          <div className="text-3xl lg:text-4xl font-semobold w-[50%] mb-2">
             Become an
             <HighlightText text={"Instructor"} />
           </div>

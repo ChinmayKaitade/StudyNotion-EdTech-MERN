@@ -1,152 +1,79 @@
+// ===============================
+// 🔐 AUTHENTICATION & AUTHORIZATION MIDDLEWARE
+// ===============================
+
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const User = require("../models/User"); // User model is imported but not strictly used in this middleware
 
-// --------------------------------------------------------------------------------
-// 🔑 AUTHENTICATION MIDDLEWARE
-// --------------------------------------------------------------------------------
-
-/**
- * @async
- * @function auth
- * @description Express middleware function to verify user authentication using a JWT.
- * It ensures a valid token is present and injects the decoded user payload into the request object.
- * @param {object} req - Express request object.
- * @param {object} res - Express response object.
- * @param {function} next - Callback function to move to the next middleware or controller.
- */
-exports.auth = async (req, res, next) => {
+/* ======================================================
+   🧩 1. AUTH MIDDLEWARE — Verify JWT Token
+   ====================================================== */
+exports.auth = (req, res, next) => {
   try {
-    // 1. Extract the token from multiple possible locations:
+    // ✅ Extract token from body, cookies, or headers
     const token =
-      req.cookies.token || // Check for token in cookies (primary method for web apps)
-      req.body.token || // Check for token in request body
-      req.header("Authorization").replace("Bearer ", ""); // Check for token in Authorization header (common for APIs) // 2. Check if the token exists
+      req.body?.token ||
+      req.cookies?.token ||
+      req.header("Authorization")?.replace("Bearer ", "");
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Token is missing!😥",
+        message: "Access denied: Token is missing",
       });
     }
 
+    // ✅ Verify token
     try {
-      // 3. Verify the token
-      // This synchronously verifies the signature using the secret key and checks expiration
-      const decode = await jwt.verify(token, process.env.JWT_SECRET);
-      console.log(decode); // Log the decoded payload (user ID, email, role, etc.) // 4. Attach the decoded payload to the request object // This makes user information accessible in all subsequent middleware and controllers
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded; // attach decoded user data to request
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired token",
+        error: err.message,
+      });
+    }
 
-      req.user = decode;
+    // ✅ Proceed to next middleware
+    next();
+  } catch (error) {
+    console.error("❌ Error during token validation:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during authentication",
+      error: error.message,
+    });
+  }
+};
+
+/* ======================================================
+   🧩 2. ROLE-BASED ACCESS CONTROL (RBAC)
+   ====================================================== */
+
+// 🔸 Generic role validator
+const authorizeRole = (role) => {
+  return (req, res, next) => {
+    try {
+      if (req.user?.accountType !== role) {
+        return res.status(403).json({
+          success: false,
+          message: `Access denied: Only ${role}s can access this route`,
+        });
+      }
+      next();
     } catch (error) {
-      // Handle errors during token verification (e.g., token expired, invalid signature)
-      return res.status(401).json({
+      console.error(`❌ Error while checking ${role} access:`, error);
+      return res.status(500).json({
         success: false,
-        message: "Invalid Token!",
+        message: `Error while checking ${role} access`,
+        error: error.message,
       });
-    } // 5. If the token is valid, move to the next handler/controller
-
-    next();
-  } catch (error) {
-    // Handle unexpected errors during the process (e.g., failed to read header)
-    return res.status(401).json({
-      success: false,
-      message: "Something went wrong while validating the token",
-    });
-  }
+    }
+  };
 };
 
-// --------------------------------------------------------------------------------
-// 🛡️ AUTHORIZATION MIDDLEWARE (Role-Based Access Control)
-// --------------------------------------------------------------------------------
-
-/**
- * @async
- * @function isStudent
- * @description Express middleware function to restrict route access to 'Student' users only.
- * It relies on the 'req.user' object being populated by a preceding authentication (JWT) middleware.
- * @param {object} req - Express request object (expects req.user to contain accountType).
- * @param {object} res - Express response object.
- * @param {function} next - Callback function to move to the next middleware or controller.
- */
-exports.isStudent = async (req, res, next) => {
-  try {
-    // 1. Check the user's role/accountType extracted from the JWT payload
-    // If the accountType is NOT "Student", access is denied.
-    if (req.user.accountType != "Student") {
-      return res.status(401).json({
-        success: false,
-        message: "This is a protected route for Students only",
-      });
-    } // 2. If the user is a Student, allow them to proceed to the next handler
-
-    next();
-  } catch (error) {
-    // Handle errors that might occur if req.user is missing or incomplete
-    return res.status(500).json({
-      success: false,
-      message: "User role cannot be verified, Please try again",
-    });
-  }
-};
-
-/**
- * @async
- * @function isInstructor
- * @description Express middleware function to restrict route access to 'Instructor' users only.
- * It relies on the 'req.user' object being populated by a preceding authentication (JWT) middleware,
- * which decodes the user's role from the token payload.
- * @param {object} req - Express request object (expects req.user to contain accountType).
- * @param {object} res - Express response object.
- * @param {function} next - Callback function to move to the next middleware or controller.
- */
-exports.isInstructor = async (req, res, next) => {
-  try {
-    // 1. Check the user's accountType extracted from the decoded JWT payload (req.user)
-    // If the accountType is NOT "Instructor", access is denied.
-    if (req.user.accountType != "Instructor") {
-      return res.status(401).json({
-        success: false,
-        message: "This is a protected route for Instructor only",
-      });
-    } // 2. If the user is an Instructor, allow them to proceed to the next handler/controller
-
-    next();
-  } catch (error) {
-    // Handle errors that might occur if req.user is missing or the role field is corrupted
-    return res.status(500).json({
-      success: false,
-      message: "User role cannot be verified, Please try again",
-    });
-  }
-};
-
-/**
- * @async
- * @function isAdmin
- * @description Express middleware function to restrict route access to 'Admin' users only.
- * It relies on the 'req.user' object being populated by a preceding authentication (JWT) middleware,
- * which decodes the user's accountType from the token payload.
- * @param {object} req - Express request object (expects req.user to contain accountType).
- * @param {object} res - Express response object.
- * @param {function} next - Callback function to move to the next middleware or controller.
- */
-exports.isAdmin = async (req, res, next) => {
-  try {
-    // 1. Check the user's accountType extracted from the decoded JWT payload (req.user)
-    // If the accountType is NOT "Admin", access is denied.
-    if (req.user.accountType != "Admin") {
-      return res.status(401).json({
-        success: false,
-        message: "This is a protected route for Admin only",
-      });
-    } // 2. If the user is an Admin, allow them to proceed to the next handler/controller
-
-    next();
-  } catch (error) {
-    // Handle errors that might occur if req.user is missing or the role field is corrupted
-    return res.status(500).json({
-      success: false,
-      message: "User role cannot be verified, Please try again",
-    });
-  }
-};
+// ✅ Export specific role-based middlewares
+exports.isStudent = authorizeRole("Student");
+exports.isInstructor = authorizeRole("Instructor");
+exports.isAdmin = authorizeRole("Admin");

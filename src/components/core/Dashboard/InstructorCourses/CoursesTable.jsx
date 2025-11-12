@@ -17,7 +17,7 @@ import {
 } from "../../../../services/operations/courseDetailsAPI";
 import { COURSE_STATUS } from "../../../../utils/constants";
 import ConfirmationModal from "../../../common/ConfirmationModal";
-import Img from "../../../common/Img";
+import Img from "./../../../common/Img";
 import toast from "react-hot-toast";
 
 export default function CoursesTable({
@@ -36,7 +36,6 @@ export default function CoursesTable({
   const handleCourseDelete = async (courseId) => {
     setLoading(true);
     const toastId = toast.loading("Deleting...");
-    
     await deleteCourse({ courseId: courseId }, token);
     const result = await fetchInstructorCourses(token);
     if (result) {
@@ -101,7 +100,7 @@ export default function CoursesTable({
           {!loading && courses?.length === 0 ? (
             <Tr>
               <Td className="py-10 text-center text-2xl font-medium text-richblack-100">
-                No Courses Found
+                No courses found
               </Td>
             </Tr>
           ) : (
@@ -185,9 +184,9 @@ export default function CoursesTable({
                     disabled={loading}
                     onClick={() => {
                       setConfirmationModal({
-                        text1: "Do you want to Delete this Course?",
+                        text1: "Do you want to delete this course?",
                         text2:
-                          "All the Data related to this Course will be Deleted",
+                          "All the data related to this course will be deleted",
                         btn1Text: !loading ? "Delete" : "Loading...  ",
                         btn2Text: "Cancel",
                         btn1Handler: !loading

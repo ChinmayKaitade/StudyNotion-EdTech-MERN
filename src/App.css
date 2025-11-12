@@ -221,3 +221,7 @@ body {
 .opacity_layer_bg {
   background: linear-gradient(180deg, rgba(4, 21, 45, 0) 0%, #04152d 79.17%);
 }
+
+.swiper-wrapper {
+  transition-timing-function: linear !important; /* ensures constant flow */
+}

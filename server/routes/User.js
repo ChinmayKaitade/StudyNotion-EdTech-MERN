@@ -1,48 +1,57 @@
-// Import the required modules
 const express = require("express");
 const router = express.Router();
 
-// Import the required controllers and middleware functions
+// Controllers
 const {
+  signup,
   login,
-  changePassword,
   sendOTP,
-  signUp,
-} = require("../controllers/Auth"); // Auth controllers
+  changePassword,
+} = require("../controllers/auth");
 
-const { isDemo } = require("../middlewares/demo"); // Middleware for restricting changes in a demo environment (assuming existence)
+// Resetpassword controllers
 const {
   resetPasswordToken,
   resetPassword,
-} = require("../controllers/ResetPassword"); // Password reset controllers
+} = require("../controllers/resetPassword");
 
-const { auth } = require("../middlewares/auth"); // Authentication middleware (JWT verification)
+// Middleware
+const { auth, isAdmin } = require("../middlewares/auth");
+const { getAllStudents, getAllInstructors } = require("../controllers/profile");
+
+// Routes for Login, Signup, and Authentication
 
 // ********************************************************************************************************
-// 🔑 Authentication Routes (Login, Signup, OTP, Change Password)
+//                                      Authentication routes
 // ********************************************************************************************************
 
-// Route for user login (Public access)
+// Route for user signup
+router.post("/signup", signup);
+
+// Route for user login
 router.post("/login", login);
 
-// Route for user signup (Public access)
-router.post("/signup", signUp);
-
-// Route for sending OTP to the user's email (Public access, usually before signup)
+// Route for sending OTP to the user's email
 router.post("/sendotp", sendOTP);
 
-// Route for Changing the password (Requires user to be logged in and not in a demo environment)
-router.post("/changepassword", auth, isDemo, changePassword);
+// Route for Changing the password
+router.post("/changepassword", auth, changePassword);
 
 // ********************************************************************************************************
-// 🔒 Reset Password Routes
+//                                      Reset Password
 // ********************************************************************************************************
 
-// Route for generating a reset password token and sending the email (Public access, requires email)
+// Route for generating a reset password token
 router.post("/reset-password-token", resetPasswordToken);
 
-// Route for resetting user's password after token verification (Public access, requires token and new password)
+// Route for resetting user's password after verification
 router.post("/reset-password", resetPassword);
 
-// Export the router for use in the main application
+// ********************************************************************************************************
+//                                     Only for Admin - getAllStudents & getAllInstructors
+// ********************************************************************************************************
+
+router.get("/all-students", auth, isAdmin, getAllStudents);
+router.get("/all-instructors", auth, isAdmin, getAllInstructors);
+
 module.exports = router;

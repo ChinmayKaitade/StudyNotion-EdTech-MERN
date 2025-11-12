@@ -1,133 +1,112 @@
-// Import the required modules
 const express = require("express");
 const router = express.Router();
 
-// Import all Controllers
-const {
-  // Course Controllers
-  createCourse,
-  getAllCourses,
-  getCourseDetails,
-  getInstructorCourses,
-  editCourse,
-  getFullCourseDetails,
-  deleteCourse,
-  searchCourse,
-  markLectureAsComplete,
-} = require("../controllers/Course");
+// Import required controllers
 
+// course controllers
 const {
-  // Categories Controllers
-  showAllCategories,
+  createCourse,
+  getCourseDetails,
+  getAllCourses,
+  getFullCourseDetails,
+  editCourse,
+  deleteCourse,
+  getInstructorCourses,
+} = require("../controllers/course");
+
+const { updateCourseProgress } = require("../controllers/courseProgress");
+
+// categories Controllers
+const {
   createCategory,
-  categoryPageDetails,
-  addCourseToCategory,
+  showAllCategories,
+  getCategoryPageDetails,
+  deleteCategory,
 } = require("../controllers/Category");
 
+// sections controllers
 const {
-  // Sections Controllers
   createSection,
   updateSection,
   deleteSection,
-} = require("../controllers/Section");
+} = require("../controllers/section");
 
+// subSections controllers
 const {
-  // Sub-Sections Controllers
   createSubSection,
   updateSubSection,
   deleteSubSection,
-} = require("../controllers/Subsection");
+} = require("../controllers/subSection");
 
+// rating controllers
 const {
-  // Rating Controllers
   createRating,
   getAverageRating,
-  getAllRating,
-} = require("../controllers/RatingAndReview");
+  getAllRatingReview,
+} = require("../controllers/ratingAndReview");
 
-// Importing Middlewares
-const { isDemo } = require("../middlewares/demo");
+// Middlewares
 const {
   auth,
+  isAdmin,
   isInstructor,
   isStudent,
-  isAdmin,
 } = require("../middlewares/auth");
 
 // ********************************************************************************************************
-// 📚 Course Routes (Instructor Access)
+//                                      Course routes
 // ********************************************************************************************************
+// Courses can Only be Created by Instructors
 
-// Route for Instructors to Create a New Course
-// Protected by Auth, Instructor Role, and Demo Restriction
-router.post("/createCourse", auth, isInstructor, isDemo, createCourse);
+router.post("/createCourse", auth, isInstructor, createCourse);
 
-// Route for Instructors to Edit an Existing Course
-router.post("/editCourse", auth, isInstructor, isDemo, editCourse);
-
-// Route for Instructors to Delete a Course
-router.delete("/deleteCourse", auth, isDemo, deleteCourse);
-
-// Route to get all Courses created by the authenticated Instructor
-router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses);
-
-// Route for Students/Public to retrieve all Courses (Catalog View)
-router.get("/getAllCourses", getAllCourses);
-
-// Route for Students/Public to get detailed information for a single course
-router.post("/getCourseDetails", getCourseDetails);
-
-// Route to get all course details including progress (requires auth for student progress tracking)
-router.post("/getFullCourseDetails", auth, getFullCourseDetails);
-
-// Route to search courses (Public access)
-router.post("/searchCourse", searchCourse);
-
-// Route for Students to mark a lecture/sub-section as complete
-router.post("/updateCourseProgress", auth, isStudent, markLectureAsComplete);
-
-// ********************************************************************************************************
-// 🧩 Section and Sub-Section Routes (Instructor Access)
-// ********************************************************************************************************
-
-// Section Management
+//Add a Section to a Course
 router.post("/addSection", auth, isInstructor, createSection);
+// Update a Section
 router.post("/updateSection", auth, isInstructor, updateSection);
-router.post("/deleteSection", auth, isInstructor, isDemo, deleteSection); // Demo restricted
+// Delete a Section
+router.post("/deleteSection", auth, isInstructor, deleteSection);
 
-// Sub-Section Management
+// Add a Sub Section to a Section
 router.post("/addSubSection", auth, isInstructor, createSubSection);
+// Edit Sub Section
 router.post("/updateSubSection", auth, isInstructor, updateSubSection);
+// Delete Sub Section
 router.post("/deleteSubSection", auth, isInstructor, deleteSubSection);
 
-// ********************************************************************************************************
-// 🏷️ Category Routes (Admin Access)
-// ********************************************************************************************************
+// Get Details for a Specific Courses
+router.post("/getCourseDetails", getCourseDetails);
+// Get all Courses
+router.get("/getAllCourses", getAllCourses);
+// get full course details
+router.post("/getFullCourseDetails", auth, getFullCourseDetails);
+// Get all Courses Under a Specific Instructor
+router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses);
 
-// Route for Admin to Create a new Category
-router.post("/createCategory", auth, isAdmin, createCategory); // Protected by Admin role
+// Edit Course routes
+router.post("/editCourse", auth, isInstructor, editCourse);
 
-// Route to get all Categories (Public access for filtering)
+// Delete a Course
+router.delete("/deleteCourse", auth, isInstructor, deleteCourse);
+
+// update Course Progress
+router.post("/updateCourseProgress", auth, isStudent, updateCourseProgress);
+
+// ********************************************************************************************************
+//                                      Category routes (Only by Admin)
+// ********************************************************************************************************
+// Category can Only be Created by Admin
+
+router.post("/createCategory", auth, isAdmin, createCategory);
+router.delete("/deleteCategory", auth, isAdmin, deleteCategory);
 router.get("/showAllCategories", showAllCategories);
-
-// Route to get course data specific to a category page (Public access)
-router.post("/getCategoryPageDetails", categoryPageDetails);
-
-// Route to link a Course to a Category (Typically used during Course Creation/Edit)
-router.post("/addCourseToCategory", auth, isInstructor, addCourseToCategory);
+router.post("/getCategoryPageDetails", getCategoryPageDetails);
 
 // ********************************************************************************************************
-// ⭐ Rating and Review Routes (Student Access)
+//                                      Rating and Review
 // ********************************************************************************************************
-
-// Route for Students to submit a rating and review
-router.post("/createRating", auth, isStudent, isDemo, createRating); // Protected by Auth, Student Role, and Demo Restriction
-
-// Route to get the calculated average rating for a specific course (Public access)
+router.post("/createRating", auth, isStudent, createRating);
 router.get("/getAverageRating", getAverageRating);
+router.get("/getReviews", getAllRatingReview);
 
-// Route to get all reviews globally (Public access, often used on a dedicated review page)
-router.get("/getReviews", getAllRating);
-
-// Export the router for use in the main application
 module.exports = router;

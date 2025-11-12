@@ -61,8 +61,11 @@ export async function buyCourse(
       throw new Error(orderResponse.data.message);
     }
 
-    const RAZORPAY_KEY = import.meta.env.VITE_APP_RAZORPAY_KEY;
+    // ============== FIX: Use CRA env variable =================
+    // const RAZORPAY_KEY = import.meta.env.VITE_APP_RAZORPAY_KEY; // ❌ Vite style (removed)
+    const RAZORPAY_KEY = process.env.REACT_APP_RAZORPAY_KEY; // ✅ CRA style
     // console.log("RAZORPAY_KEY...", RAZORPAY_KEY);
+    // ==========================================================
 
     // options
     const options = {

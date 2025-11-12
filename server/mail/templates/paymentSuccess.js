@@ -78,7 +78,7 @@ exports.paymentSuccess = (amount, paymentId, orderId, name, lastname) => {
         
         <body>
             <div class="container">
-                <a href="https://studynotion-edtech-project.vercel.app"><img class="logo" src="https://i.ibb.co/7Xyj3PC/logo.png"
+                <a href="https://github.com/ChinmayKaitade/"><img class="logo" src="https://i.ibb.co/ds6RzBPq/Study-Notion-Dark.png"
                         alt="StudyNotion Logo"></a>
                 <div class="message">
                 Your payment of ₹${amount} has been successfully received.
@@ -94,7 +94,7 @@ exports.paymentSuccess = (amount, paymentId, orderId, name, lastname) => {
                     </p>
                 </div>
                 <div class="support">If you have any questions or need assistance, please feel free to reach out to us at <a
-                        href="mailto:info@studynotion.com">info@studynotion.com</a>. We are here to help!</div>
+                        href="mailto:chinmaykaitade123@gmail.com">chinmaykaitade123@gmail.com</a>. We are here to help!</div>
             </div>
         </body>
         

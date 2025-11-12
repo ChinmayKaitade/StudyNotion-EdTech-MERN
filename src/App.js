@@ -1,49 +1,97 @@
-import { Route, Routes } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Route, Routes, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+
 import Home from "./pages/Home";
-import Navbar from "./components/common/Navbar";
-import Signup from "./pages/Signup";
 import Login from "./pages/Login";
-import OpenRoute from "./components/core/Auth/OpenRoute";
-import PageNotFound from "./pages/PageNotFound";
+import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 import VerifyEmail from "./pages/VerifyEmail";
-import MyProfile from "./components/core/Dashboard/MyProfile";
 import About from "./pages/About";
-import "./App.css";
 import Contact from "./pages/Contact";
-import Dashboard from "./pages/Dashboard";
-import ProtectedRoute from "./components/core/Auth/ProtectedRoute";
-import Settings from "./components/core/Settings/Settings";
-import { useSelector } from "react-redux";
-import EnrolledCourses from "./components/core/Dashboard/EnrolledCourses";
+import PageNotFound from "./pages/PageNotFound";
+import CourseDetails from "./pages/CourseDetails";
+import Catalog from "./pages/Catalog";
 
-import { ACCOUNT_TYPE } from "./utils/constants";
-import Cart from "./components/core/Dashboard/Cart/Cart";
-import AddCourse from "./components/core/Dashboard/AddCourse/AddCourse";
+import Navbar from "./components/common/Navbar";
+
+import OpenRoute from "./components/core/Auth/OpenRoute";
+import ProtectedRoute from "./components/core/Auth/ProtectedRoute";
+
+import Dashboard from "./pages/Dashboard";
+import MyProfile from "./components/core/Dashboard/MyProfile";
+import Settings from "./components/core/Dashboard/Settings/Settings";
 import MyCourses from "./components/core/Dashboard/MyCourses";
 import EditCourse from "./components/core/Dashboard/EditCourse/EditCourse";
-import Catalog from "./pages/Catalog";
-import CourseDetails from "./pages/CourseDetails";
+import Instructor from "./components/core/Dashboard/InstructorDashboard/Instructor";
+
+import Cart from "./components/core/Dashboard/Cart/Cart";
+import EnrolledCourses from "./components/core/Dashboard/EnrolledCourses";
+import AddCourse from "./components/core/Dashboard/AddCourse/AddCourse";
+
 import ViewCourse from "./pages/ViewCourse";
 import VideoDetails from "./components/core/ViewCourse/VideoDetails";
-import Instructor from "./components/core/Dashboard/InstructorDashboard/Instructor";
+
+import { ACCOUNT_TYPE } from "./utils/constants";
+
+import { HiArrowNarrowUp } from "react-icons/hi";
+import CreateCategory from "./components/core/Dashboard/CreateCategory";
+import AllStudents from "./components/core/Dashboard/AllStudents";
+import AllInstructors from "./components/core/Dashboard/AllInstructors";
 
 function App() {
   const { user } = useSelector((state) => state.profile);
+  const location = useLocation();
+
+  const [showArrow, setShowArrow] = useState(false);
+
+  // -----------------------------
+  // Scroll to top whenever route changes
+  // -----------------------------
+  useEffect(() => {
+    // FIXED ESLint error: replaced 'scrollTo' with 'window.scrollTo'
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [location.pathname]); // scrolls to top whenever path changes
+
+  // -----------------------------
+  // Show/hide "Go Up" arrow on scroll
+  // -----------------------------
+  useEffect(() => {
+    const handleArrow = () => setShowArrow(window.scrollY > 500);
+    window.addEventListener("scroll", handleArrow);
+
+    // Cleanup listener
+    return () => window.removeEventListener("scroll", handleArrow);
+  }, []); // removed redundant dependency [showArrow]
 
   return (
-    <div className="w-screen min-h-screen bg-richblack-900 flex flex-col">
+    <div className="w-screen min-h-screen bg-richblack-900 flex flex-col font-inter">
       <Navbar />
 
+      {/* -----------------------------
+          Go Up Arrow Button
+          -----------------------------
+          FIXED ESLint: used 'window.scrollTo' instead of just 'scrollTo'
+      */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        className={`bg-yellow-25 hover:bg-yellow-50 hover:scale-110 p-3 text-lg text-black rounded-2xl fixed right-3 z-10 duration-500 ease-in-out ${
+          showArrow ? "bottom-6" : "-bottom-24"
+        }`}
+      >
+        <HiArrowNarrowUp />
+      </button>
+
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="catalog/:catalogName" element={<Catalog />} />
-        <Route path="catalog/:courseId" element={<CourseDetails />} />
         <Route path="/about" element={<About />} />
+        <Route path="catalog/:catalogName" element={<Catalog />} />
+        <Route path="courses/:courseId" element={<CourseDetails />} />
 
-        {/* Open Route - for Only Non Logged in User */}
+        {/* Open Routes */}
         <Route
           path="signup"
           element={
@@ -52,7 +100,6 @@ function App() {
             </OpenRoute>
           }
         />
-
         <Route
           path="login"
           element={
@@ -61,7 +108,6 @@ function App() {
             </OpenRoute>
           }
         />
-
         <Route
           path="forgot-password"
           element={
@@ -70,7 +116,6 @@ function App() {
             </OpenRoute>
           }
         />
-
         <Route
           path="verify-email"
           element={
@@ -79,7 +124,6 @@ function App() {
             </OpenRoute>
           }
         />
-
         <Route
           path="update-password/:id"
           element={
@@ -89,8 +133,7 @@ function App() {
           }
         />
 
-        {/* Protected Route - for Only Logged in User */}
-        {/* Dashboard */}
+        {/* Protected Routes */}
         <Route
           element={
             <ProtectedRoute>
@@ -99,36 +142,37 @@ function App() {
           }
         >
           <Route path="dashboard/my-profile" element={<MyProfile />} />
-          <Route path="dashboard/Settings" element={<Settings />} />
+          <Route path="dashboard/settings" element={<Settings />} />
 
-          {/* Route only for Students */}
-          {/* cart , EnrolledCourses */}
-          {user?.accountType === ACCOUNT_TYPE.STUDENT && (
+          {/* Admin Routes */}
+          {user?.accountType === ACCOUNT_TYPE.ADMIN && (
             <>
-              <Route path="dashboard/cart" element={<Cart />} />
-              <Route
-                path="dashboard/enrolled-courses"
-                element={<EnrolledCourses />}
-              />
+              <Route path="dashboard/create-category" element={<CreateCategory />} />
+              <Route path="dashboard/all-students" element={<AllStudents />} />
+              <Route path="dashboard/all-instructors" element={<AllInstructors />} />
             </>
           )}
 
-          {/* Route only for Instructors */}
-          {/* add course , MyCourses, EditCourse*/}
+          {/* Student Routes */}
+          {user?.accountType === ACCOUNT_TYPE.STUDENT && (
+            <>
+              <Route path="dashboard/cart" element={<Cart />} />
+              <Route path="dashboard/enrolled-courses" element={<EnrolledCourses />} />
+            </>
+          )}
+
+          {/* Instructor Routes */}
           {user?.accountType === ACCOUNT_TYPE.INSTRUCTOR && (
             <>
               <Route path="dashboard/instructor" element={<Instructor />} />
               <Route path="dashboard/add-course" element={<AddCourse />} />
               <Route path="dashboard/my-courses" element={<MyCourses />} />
-              <Route
-                path="dashboard/edit-course/:courseId"
-                element={<EditCourse />}
-              />
+              <Route path="dashboard/edit-course/:courseId" element={<EditCourse />} />
             </>
           )}
         </Route>
 
-        {/* For the watching course lectures */}
+        {/* Protected ViewCourse Routes */}
         <Route
           element={
             <ProtectedRoute>
@@ -144,7 +188,7 @@ function App() {
           )}
         </Route>
 
-        {/* Page Not Found (404 Page ) */}
+        {/* 404 Page */}
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </div>

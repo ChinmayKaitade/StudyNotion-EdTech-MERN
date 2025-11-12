@@ -1,48 +1,41 @@
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react"
+import { useSelector } from "react-redux"
 
-import { RiDeleteBin6Line } from "react-icons/ri";
+import { RiDeleteBin6Line } from 'react-icons/ri'
 
-export default function RequirementsField({
-  name,
-  label,
-  register,
-  setValue,
-  errors,
-}) {
-  const { editCourse, course } = useSelector((state) => state.course);
-  const [requirement, setRequirement] = useState("");
-  const [requirementsList, setRequirementsList] = useState([]);
+
+
+
+export default function RequirementsField({ name, label, register, setValue, errors, }) {
+  const { editCourse, course } = useSelector((state) => state.course)
+  const [requirement, setRequirement] = useState("")
+  const [requirementsList, setRequirementsList] = useState([])
 
   useEffect(() => {
     if (editCourse) {
-      setRequirementsList(course?.instructions);
+      setRequirementsList(course?.instructions)
     }
-    register(
-      name,
-      { required: true, validate: (value) => value.length > 0 },
-      requirementsList
-    );
-  }, []);
+    register(name, { required: true, validate: (value) => value.length > 0 }, requirementsList)
+  }, [])
 
   useEffect(() => {
-    setValue(name, requirementsList);
-  }, [requirementsList]);
+    setValue(name, requirementsList)
+  }, [requirementsList])
 
   // add instruction
   const handleAddRequirement = () => {
     if (requirement && !requirementsList.includes(requirement)) {
-      setRequirementsList([...requirementsList, requirement]);
-      setRequirement("");
+      setRequirementsList([...requirementsList, requirement])
+      setRequirement("")
     }
-  };
+  }
 
   // delete instruction
   const handleRemoveRequirement = (index) => {
-    const updatedRequirements = [...requirementsList];
-    updatedRequirements.splice(index, 1);
-    setRequirementsList(updatedRequirements);
-  };
+    const updatedRequirements = [...requirementsList]
+    updatedRequirements.splice(index, 1)
+    setRequirementsList(updatedRequirements)
+  }
 
   return (
     <div className="flex flex-col space-y-2">
@@ -91,5 +84,5 @@ export default function RequirementsField({
         </span>
       )}
     </div>
-  );
+  )
 }
