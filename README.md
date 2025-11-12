@@ -58,7 +58,7 @@ StudyNotion follows a client-server architecture with three main components:
 
 You can explore all available API endpoints, request/response examples, and test the StudyNotion APIs here:
 
-**[StudyNotion Postman API Docs](https://documenter.getpostman.com/view/24441701/2s93kz6REm)**
+**[StudyNotion Postman API Docs](https://documenter.getpostman.com/view/33792038/2sB3Wttz7C)**
 
 ---
 
