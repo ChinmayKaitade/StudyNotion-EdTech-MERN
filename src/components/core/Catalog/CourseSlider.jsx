@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react"; // Only React is needed, removed useEffect and useState
 
 // Import Swiper styles
 import "swiper/css";
@@ -6,7 +6,7 @@ import "swiper/css/free-mode";
 import "swiper/css/pagination";
 // Import Swiper React components
 import { Swiper, SwiperSlide } from "swiper/react";
-// import {  Pagination } from "swiper"
+// Removed: import { Pagination } from "swiper" // If you don't use it, keep it commented out or remove it entirely
 
 import CourseCard from "./CourseCard";
 
@@ -18,6 +18,7 @@ function CourseSlider({ Courses }) {
           slidesPerView={1}
           spaceBetween={25}
           loop={true}
+          // The 'modules' prop is commented out, confirming no need to import { Pagination }
           // modules={[ Pagination]}
 
           breakpoints={{
@@ -35,7 +36,8 @@ function CourseSlider({ Courses }) {
         </Swiper>
       ) : (
         <div className="flex flex-col sm:flex-row gap-6 ">
-          <p className=" h-[201px] w-full rounded-xl  skeleton"></p>
+          {/* Displays skeleton loading state when no courses are available */}
+          <p className=" h-[201px] w-full rounded-xl  skeleton"></p>
           <p className=" h-[201px] w-full rounded-xl hidden lg:flex skeleton"></p>
           <p className=" h-[201px] w-full rounded-xl hidden lg:flex skeleton"></p>
         </div>
