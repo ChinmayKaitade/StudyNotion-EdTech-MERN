@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react"; // Added useCallback
 import ProgressBar from "@ramonak/react-progress-bar";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -13,18 +13,20 @@ export default function EnrolledCourses() {
   const [enrolledCourses, setEnrolledCourses] = useState(null);
 
   // fetch all users enrolled courses
-  const getEnrolledCourses = async () => {
+  // FIX: Wrap getEnrolledCourses in useCallback to stabilize the function instance.
+  const getEnrolledCourses = useCallback(async () => {
     try {
       const res = await getUserEnrolledCourses(token);
       setEnrolledCourses(res);
     } catch (error) {
       console.log("Could not fetch enrolled courses.");
     }
-  };
+  }, [token]); // Dependency: Only recreate if 'token' changes.
 
   useEffect(() => {
+    // Now this effect only re-runs if 'getEnrolledCourses' (which is stable unless 'token' changes) changes.
     getEnrolledCourses();
-  }, []);
+  }, [getEnrolledCourses]); // FIX: Only need 'getEnrolledCourses' as a dependency now.
 
   // Loading Skeleton
   const sklItem = () => {
@@ -34,21 +36,21 @@ export default function EnrolledCourses() {
           <div className="h-14 w-14 rounded-lg skeleton "></div>
 
           <div className="flex flex-col w-[40%] ">
-            <p className="h-2 w-[50%] rounded-xl  skeleton"></p>
+            <p className="h-2 w-[50%] rounded-xl  skeleton"></p>
             <p className="h-2 w-[70%] rounded-xl mt-3 skeleton"></p>
           </div>
         </div>
 
         <div className="flex flex-[0.4] flex-col ">
           <p className="h-2 w-[20%] rounded-xl skeleton mt-2"></p>
-          <p className="h-2 w-[40%] rounded-xl skeleton mt-3"></p>
+          <p className="h-2 w-[40%] rounded-xl mt-3"></p>
         </div>
       </div>
     );
   };
 
   // return if data is null
-  if (enrolledCourses?.length == 0) {
+  if (enrolledCourses?.length === 0) {
     return (
       <p className="grid h-[50vh] w-full place-content-center text-center text-richblack-5 text-3xl">
         You have not enrolled in any course yet.
@@ -114,13 +116,10 @@ export default function EnrolledCourses() {
               </div>
 
               {/* only for smaller devices */}
-              {/* duration -  progress */}
               <div className="sm:hidden">
                 <div className=" px-2 py-3">{course?.totalDuration}</div>
 
                 <div className="flex sm:w-2/5 flex-col gap-2 px-2 py-3">
-                  {/* {console.log('Course ============== ', course.progressPercentage)} */}
-
                   <p>Progress: {course.progressPercentage || 0}%</p>
                   <ProgressBar
                     completed={course.progressPercentage || 0}
@@ -131,7 +130,6 @@ export default function EnrolledCourses() {
               </div>
 
               {/* only for larger devices */}
-              {/* duration -  progress */}
               <div className="hidden w-1/5 sm:flex px-2 py-3">
                 {course?.totalDuration}
               </div>
