@@ -1,6 +1,6 @@
 import { toast } from "react-hot-toast";
 
-import { updateCompletedLectures } from "../../slices/viewCourseSlice";
+// Removed: import { updateCompletedLectures } from "../../slices/viewCourseSlice";
 // import { setLoading } from "../../slices/profileSlice";
 import { apiConnector } from "../apiConnector";
 import { courseEndpoints } from "../apis";
@@ -100,7 +100,7 @@ export const getAllCourses = async () => {
 // ================ fetch Course Details ================
 export const fetchCourseDetails = async (courseId) => {
   // const toastId = toast.loading('Loading')
-  //   dispatch(setLoading(true));
+  // 	dispatch(setLoading(true));
   let result = null;
 
   try {
@@ -119,7 +119,7 @@ export const fetchCourseDetails = async (courseId) => {
     // toast.error(error.response.data.message);
   }
   // toast.dismiss(toastId)
-  //   dispatch(setLoading(false));
+  // 	dispatch(setLoading(false));
   return result;
 };
 
@@ -387,7 +387,7 @@ export const deleteCourse = async (data, token) => {
 // ================ get Full Details Of Course ================
 export const getFullDetailsOfCourse = async (courseId, token) => {
   // const toastId = toast.loading("Loading...")
-  //   dispatch(setLoading(true));
+  // 	dispatch(setLoading(true));
   let result = null;
   try {
     const response = await apiConnector(
@@ -412,7 +412,7 @@ export const getFullDetailsOfCourse = async (courseId, token) => {
     // toast.error(error.response.data.message);
   }
   // toast.dismiss(toastId)
-  //   dispatch(setLoading(false));
+  // 	dispatch(setLoading(false));
   return result;
 };
 
@@ -444,7 +444,7 @@ export const markLectureAsComplete = async (data, token) => {
   return result;
 };
 
-// ================ create Course Rating  ================
+// ================ create Course Rating 	================
 export const createRating = async (data, token) => {
   const toastId = toast.loading("Loading...");
   let success = false;
