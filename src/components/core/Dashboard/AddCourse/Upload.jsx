@@ -15,7 +15,9 @@ export default function Upload({
   editData = null,
 }) {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [previewSource, setPreviewSource] = useState(viewData || editData || "");
+  const [previewSource, setPreviewSource] = useState(
+    viewData || editData || ""
+  );
   const inputRef = useRef(null);
 
   const onDrop = (acceptedFiles) => {
@@ -27,7 +29,9 @@ export default function Upload({
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: !video ? { "image/*": [".jpeg", ".jpg", ".png"] } : { "video/*": [".mp4"] },
+    accept: !video
+      ? { "image/*": [".jpeg", ".jpg", ".png"] }
+      : { "video/*": [".mp4"] },
     onDrop,
     noClick: true, // FIX: disable default click so we can handle manual browse
   });
@@ -38,13 +42,14 @@ export default function Upload({
     reader.onloadend = () => setPreviewSource(reader.result);
   };
 
+  // FIX: Added 'name' dependency
   useEffect(() => {
     register(name, { required: true });
-  }, [register]);
+  }, [register, name]);
 
   useEffect(() => {
     setValue(name, selectedFile);
-  }, [selectedFile, setValue]);
+  }, [selectedFile, setValue, name]); // 'name' dependency also added here for completeness, though often covered by setValue logic
 
   const handleCancel = (e) => {
     e.stopPropagation();
