@@ -1,41 +1,58 @@
-import { useEffect, useState } from "react"
-import { useSelector } from "react-redux"
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
-import { RiDeleteBin6Line } from 'react-icons/ri'
+import { RiDeleteBin6Line } from "react-icons/ri";
 
+export default function RequirementsField({
+  name,
+  label,
+  register,
+  setValue,
+  errors,
+}) {
+  const { editCourse, course } = useSelector((state) => state.course);
+  const [requirement, setRequirement] = useState("");
+  const [requirementsList, setRequirementsList] = useState([]);
 
-
-
-export default function RequirementsField({ name, label, register, setValue, errors, }) {
-  const { editCourse, course } = useSelector((state) => state.course)
-  const [requirement, setRequirement] = useState("")
-  const [requirementsList, setRequirementsList] = useState([])
-
+  // 1. Initialization and Registration
   useEffect(() => {
     if (editCourse) {
-      setRequirementsList(course?.instructions)
+      // Initialize requirementsList from course data if in edit mode
+      setRequirementsList(course?.instructions);
     }
-    register(name, { required: true, validate: (value) => value.length > 0 }, requirementsList)
-  }, [])
 
+    // Register the field with validation.
+    // Note: The third argument 'requirementsList' in the original code is likely intended
+    // as a default value, but should be set separately if registration needs to run only once.
+    // We remove it from the register call and rely on the second useEffect for value setting.
+    register(name, { required: true, validate: (value) => value.length > 0 });
+  }, [
+    editCourse,
+    name,
+    register,
+    course?.instructions, // Dependency for initialization data
+  ]);
+
+  // 2. Synchronization
   useEffect(() => {
-    setValue(name, requirementsList)
-  }, [requirementsList])
+    // Sync the local state array with the form value whenever the list changes
+    setValue(name, requirementsList);
+  }, [requirementsList, name, setValue]); // Dependencies added: requirementsList, name, setValue
 
   // add instruction
   const handleAddRequirement = () => {
     if (requirement && !requirementsList.includes(requirement)) {
-      setRequirementsList([...requirementsList, requirement])
-      setRequirement("")
+      setRequirementsList([...requirementsList, requirement]);
+      setRequirement("");
     }
-  }
+  };
 
   // delete instruction
   const handleRemoveRequirement = (index) => {
-    const updatedRequirements = [...requirementsList]
-    updatedRequirements.splice(index, 1)
-    setRequirementsList(updatedRequirements)
-  }
+    const updatedRequirements = [...requirementsList];
+    updatedRequirements.splice(index, 1);
+    setRequirementsList(updatedRequirements);
+  };
 
   return (
     <div className="flex flex-col space-y-2">
@@ -70,7 +87,6 @@ export default function RequirementsField({ name, label, register, setValue, err
                 className="ml-2 text-xs text-pure-greys-300 "
                 onClick={() => handleRemoveRequirement(index)}
               >
-                {/* clear  */}
                 <RiDeleteBin6Line className="text-pink-200 text-sm hover:scale-125 duration-200" />
               </button>
             </li>
@@ -84,5 +100,5 @@ export default function RequirementsField({ name, label, register, setValue, err
         </span>
       )}
     </div>
-  )
+  );
 }
