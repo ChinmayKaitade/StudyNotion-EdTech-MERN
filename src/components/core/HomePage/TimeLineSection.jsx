@@ -50,7 +50,10 @@ const TimelineSection = () => {
             return (
               <div className="flex flex-row gap-6" key={index}>
                 <div className="w-[50px] h-[50px] rounded-full bg-richblue-500 flex justify-center items-center">
-                  <img src={element.Logo} />
+                  <img
+                    src={element.Logo}
+                    alt={`${element.heading} icon`} // FIX: Added alt prop
+                  />
                 </div>
 
                 <div>
@@ -73,13 +76,13 @@ const TimelineSection = () => {
         >
           <Img
             src={timelineImage}
-            alt="timelineImage"
+            alt="Timeline of educational achievements"
             className="shadow-white object-cover h-fit scale-x-[-1] w-[550px] "
           />
 
           <div
             className=" absolute bg-caribbeangreen-700 flex flex-row text-white uppercase py-7
-                            left-[50%] translate-x-[-50%] translate-y-[-70%] rounded-3xl"
+                            left-[50%] translate-x-[-50%] translate-y-[-70%] rounded-3xl"
           >
             <div className="flex flex-row gap-5 items-center border-r border-caribbeangreen-300 px-7">
               <p className="text-2xl lg:text-3xl font-bold">10</p>
