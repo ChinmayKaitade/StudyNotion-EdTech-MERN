@@ -54,7 +54,8 @@ app.use("/api/v1/course", courseRoutes);
 app.get("/", (req, res) => {
   // console.log('Your server is up and running..!');
   res.send(`<div>
-    DEFAULT ROUTE   
-    <p>StudyNotion is Live🔥🔥 Everything is running OK👍🚀</p>
+    <h1>DEFAULT ROUTE</h1>  
+    <p>StudyNotion is Live🔥 Everything is running OK 👍🚀</p>
+    <p>Made By ❤️‍🔥 with Chinmay Kaitade</p>
     </div>`);
 });
