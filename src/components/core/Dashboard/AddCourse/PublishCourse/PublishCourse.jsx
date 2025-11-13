@@ -17,11 +17,15 @@ export default function PublishCourse() {
   const { course } = useSelector((state) => state.course);
   const [loading, setLoading] = useState(false);
 
+  // useEffect to initialize the checkbox state based on course status
   useEffect(() => {
     if (course?.status === COURSE_STATUS.PUBLISHED) {
       setValue("public", true);
     }
-  }, []);
+  }, [
+    course?.status, // Dependency: Status of the course from Redux
+    setValue, // Dependency: Function used to set the form value
+  ]);
 
   const goBack = () => {
     dispatch(setStep(2));
@@ -39,16 +43,17 @@ export default function PublishCourse() {
         getValues("public") === true) ||
       (course?.status === COURSE_STATUS.DRAFT && getValues("public") === false)
     ) {
-      // form has not been updated
-      // no need to make api call
+      // form has not been updated, no need to make api call
       goToCourses();
       return;
     }
+
     const formData = new FormData();
     formData.append("courseId", course._id);
     const courseStatus = getValues("public")
       ? COURSE_STATUS.PUBLISHED
       : COURSE_STATUS.DRAFT;
+
     formData.append("status", courseStatus);
     setLoading(true);
     const result = await editCourseDetails(formData, token);
