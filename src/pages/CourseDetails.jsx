@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BiInfoCircle } from "react-icons/bi";
 import { HiOutlineGlobeAlt } from "react-icons/hi";
-// import { ReactMarkdown } from "react-markdown/lib/react-markdown"
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -33,7 +32,6 @@ function CourseDetails() {
 
   // Getting courseId from url parameter
   const { courseId } = useParams();
-  // console.log(`course id: ${courseId}`)
 
   // Declear a state to save the course details
   const [response, setResponse] = useState(null);
@@ -44,7 +42,6 @@ function CourseDetails() {
     const fectchCourseDetailsData = async () => {
       try {
         const res = await fetchCourseDetails(courseId);
-        // console.log("course details res: ", res)
         setResponse(res);
       } catch (error) {
         console.log("Could not fetch Course Details");
@@ -53,25 +50,20 @@ function CourseDetails() {
     fectchCourseDetailsData();
   }, [courseId]);
 
-  // console.log("response: ", response)
-
   // Calculating Avg Review count
   const [avgReviewCount, setAvgReviewCount] = useState(0);
   useEffect(() => {
     const count = GetAvgRating(response?.data?.courseDetails.ratingAndReviews);
     setAvgReviewCount(count);
   }, [response]);
-  // console.log("avgReviewCount: ", avgReviewCount)
 
   // Collapse all
-  // const [collapse, setCollapse] = useState("")
   const [isActive, setIsActive] = useState(Array(0));
   const handleActive = (id) => {
-    // console.log("called", id)
     setIsActive(
       !isActive.includes(id)
         ? isActive.concat([id])
-        : isActive.filter((e) => e != id)
+        : isActive.filter((e) => e !== id)
     );
   };
 
@@ -93,8 +85,8 @@ function CourseDetails() {
   // Loading skeleton
   if (paymentLoading || loading || !response) {
     return (
-      <div className={`mt-24 p-5 flex flex-col justify-center gap-4  `}>
-        <div className="flex flex-col sm:flex-col-reverse  gap-4 ">
+      <div className={`mt-24 p-5 flex flex-col justify-center gap-4  `}>
+        <div className="flex flex-col sm:flex-col-reverse  gap-4 ">
           <p className="h-44 sm:h-24 sm:w-[60%] rounded-xl skeleton"></p>
           <p className="h-9 sm:w-[39%] rounded-xl skeleton"></p>
         </div>
@@ -106,7 +98,7 @@ function CourseDetails() {
         {/* Floating Courses Card */}
         <div
           className="right-[1.5rem] top-[20%] hidden lg:block lg:absolute min-h-[450px] w-1/3 max-w-[410px] 
-            translate-y-24 md:translate-y-0 rounded-xl skeleton"
+            translate-y-24 md:translate-y-0 rounded-xl skeleton"
         ></div>
 
         <p className="mt-24 h-60 lg:w-[60%] rounded-xl skeleton"></p>
@@ -116,7 +108,7 @@ function CourseDetails() {
 
   // extract course data
   const {
-    _id: course_id,
+    // Removed: _id, // Was unused
     courseName,
     courseDescription,
     thumbnail,
@@ -138,8 +130,8 @@ function CourseDetails() {
       return;
     }
     setConfirmationModal({
-      text1: "You are not logged in!",
-      text2: "Please login to Purchase Course.",
+      text1: "You're not logged in!",
+      text2: "Please log in to purchase the course.",
       btn1Text: "Login",
       btn2Text: "Cancel",
       btn1Handler: () => navigate("/login"),
@@ -158,8 +150,8 @@ function CourseDetails() {
       return;
     }
     setConfirmationModal({
-      text1: "You are not logged in!",
-      text2: "Please login to add To Cart",
+      text1: "You're not logged in!",
+      text2: "Please log in to add to cart",
       btn1Text: "Login",
       btn2Text: "Cancel",
       btn1Handler: () => navigate("/login"),
@@ -175,7 +167,7 @@ function CourseDetails() {
           <div className="mx-auto grid min-h-[450px] max-w-maxContentTab justify-items-cente py-8 lg:mx-0 lg:justify-items-start lg:py-0 xl:max-w-[810px]">
             {/* Go back button */}
             <div
-              className="mb-5 lg:mt-10 lg:mb-0 z-[100]  "
+              className="mb-5 lg:mt-10 lg:mb-0 z-[100]  "
               onClick={() => navigate(-1)}
             >
               <GiReturnArrow className="w-10 h-10 text-yellow-100 hover:text-yellow-50 cursor-pointer" />
