@@ -27,32 +27,38 @@ export default function SubSectionModal({
     getValues,
   } = useForm();
 
-  // console.log("view", view)
-  // console.log("edit", edit)
-  // console.log("add", add)
-
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const { token } = useSelector((state) => state.auth);
   const { course } = useSelector((state) => state.course);
 
+  // useEffect to populate form fields when in view or edit mode
   useEffect(() => {
     if (view || edit) {
-      // console.log("modalData", modalData)
-      setValue("lectureTitle", modalData.title);
-      setValue("lectureDesc", modalData.description);
-      setValue("lectureVideo", modalData.videoUrl);
+      // Deconstruct modalData to list specific properties in dependencies
+      const { title, description, videoUrl } = modalData;
+      setValue("lectureTitle", title);
+      setValue("lectureDesc", description);
+      setValue("lectureVideo", videoUrl);
     }
-  }, []);
+  }, [
+    view, // Dependency: changes if view mode is enabled/disabled
+    edit, // Dependency: changes if edit mode is enabled/disabled
+    modalData, // Dependency: the data object itself (or its relevant properties)
+    setValue, // Dependency: setValue function from useForm
+    // We can list specific properties from modalData for clarity, though modalData itself should suffice
+    // If you prefer specific properties: modalData.title, modalData.description, modalData.videoUrl
+  ]);
 
   // detect whether form is updated or not
   const isFormUpdated = () => {
     const currentValues = getValues();
-    // console.log("changes after editing form values:", currentValues)
+    // Use optional chaining just in case modalData is null/undefined during early render,
+    // though the component logic should prevent this
     if (
-      currentValues.lectureTitle !== modalData.title ||
-      currentValues.lectureDesc !== modalData.description ||
-      currentValues.lectureVideo !== modalData.videoUrl
+      currentValues.lectureTitle !== modalData?.title ||
+      currentValues.lectureDesc !== modalData?.description ||
+      currentValues.lectureVideo !== modalData?.videoUrl
     ) {
       return true;
     }
@@ -62,11 +68,11 @@ export default function SubSectionModal({
   // handle the editing of subsection
   const handleEditSubsection = async () => {
     const currentValues = getValues();
-    // console.log("changes after editing form values:", currentValues)
     const formData = new FormData();
-    // console.log("Values After Editing form values:", currentValues)
     formData.append("sectionId", modalData.sectionId);
     formData.append("subSectionId", modalData._id);
+
+    // Append fields only if they have changed
     if (currentValues.lectureTitle !== modalData.title) {
       formData.append("title", currentValues.lectureTitle);
     }
@@ -76,10 +82,10 @@ export default function SubSectionModal({
     if (currentValues.lectureVideo !== modalData.videoUrl) {
       formData.append("video", currentValues.lectureVideo);
     }
+
     setLoading(true);
     const result = await updateSubSection(formData, token);
     if (result) {
-      // console.log("result", result)
       // update the structure of course
       const updatedCourseContent = course.courseContent.map((section) =>
         section._id === modalData.sectionId ? result : section
@@ -92,7 +98,6 @@ export default function SubSectionModal({
   };
 
   const onSubmit = async (data) => {
-    // console.log(data)
     if (view) return;
 
     if (edit) {
@@ -105,7 +110,7 @@ export default function SubSectionModal({
     }
 
     const formData = new FormData();
-    formData.append("sectionId", modalData);
+    formData.append("sectionId", modalData); // Assuming modalData is the sectionId when adding
     formData.append("title", data.lectureTitle);
     formData.append("description", data.lectureDesc);
     formData.append("video", data.lectureVideo);
@@ -148,8 +153,9 @@ export default function SubSectionModal({
             setValue={setValue}
             errors={errors}
             video={true}
-            viewData={view ? modalData.videoUrl : null}
-            editData={edit ? modalData.videoUrl : null}
+            // Use modalData safely with optional chaining
+            viewData={view ? modalData?.videoUrl : null}
+            editData={edit ? modalData?.videoUrl : null}
           />
           {/* Lecture Title */}
           <div className="flex flex-col space-y-2">
