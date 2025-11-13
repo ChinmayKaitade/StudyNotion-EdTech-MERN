@@ -34,24 +34,36 @@ const VideoDetails = () => {
   useEffect(() => {
     (async () => {
       if (!courseSectionData.length) return;
-      if (!courseId && !sectionId && !subSectionId) {
+
+      // Check for missing parameters and navigate if necessary
+      if (!courseId || !sectionId || !subSectionId) {
+        // We need 'navigate' here, so it must be a dependency.
         navigate(`/dashboard/enrolled-courses`);
       } else {
-        // console.log("courseSectionData", courseSectionData)
+        // Filter logic uses these parameters: courseSectionData, sectionId, subSectionId
         const filteredData = courseSectionData.filter(
           (course) => course._id === sectionId
         );
-        // console.log("filteredData", filteredData)
         const filteredVideoData = filteredData?.[0]?.subSection.filter(
           (data) => data._id === subSectionId
         );
-        // console.log("filteredVideoData = ", filteredVideoData)
+
         if (filteredVideoData) setVideoData(filteredVideoData[0]);
+
+        // Uses courseEntireData for thumbnail
         setPreviewSource(courseEntireData.thumbnail);
         setVideoEnded(false);
       }
     })();
-  }, [courseSectionData, courseEntireData, location.pathname]);
+  }, [
+    courseSectionData,
+    courseEntireData,
+    location.pathname, // Triggered on URL change
+    courseId, // Dependency from useParams
+    sectionId, // Dependency from useParams
+    subSectionId, // Dependency from useParams
+    navigate, // Dependency for redirecting
+  ]);
 
   // check if the lecture is the first video of the course
   const isFirstVideo = () => {
