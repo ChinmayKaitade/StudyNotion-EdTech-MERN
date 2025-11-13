@@ -25,28 +25,31 @@ export default function Sidebar() {
   // to keep track of confirmation modal
   const [confirmationModal, setConfirmationModal] = useState(null);
 
-  // handle side bar menu - open / close
-  // const [openSideMenu, setOpenSideMenu] = useState(false)
-  // const [screenSize, setScreenSize] = useState(undefined)
-
   const { openSideMenu, screenSize } = useSelector((state) => state.sidebar);
   // console.log('openSideMenu ======' , openSideMenu)
   // console.log('screenSize ======' , screenSize)
 
+  // 1. Resize listener to set screenSize state
   useEffect(() => {
+    // Handler uses dispatch, so dispatch must be a dependency
     const handleResize = () => dispatch(setScreenSize(window.innerWidth));
 
     window.addEventListener("resize", handleResize);
-    handleResize();
+    handleResize(); // Call initially to set size
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [dispatch]); // FIX: Added 'dispatch' dependency
 
-  // If screen size is small then close the side bar
+  // 2. Close/Open sidebar based on screen size
   useEffect(() => {
-    if (screenSize <= 640) {
-      dispatch(setOpenSideMenu(false));
-    } else dispatch(setOpenSideMenu(true));
-  }, [screenSize]);
+    // Logic uses screenSize and dispatch, so both must be dependencies
+    if (screenSize !== undefined) {
+      if (screenSize <= 640) {
+        dispatch(setOpenSideMenu(false));
+      } else {
+        dispatch(setOpenSideMenu(true));
+      }
+    }
+  }, [screenSize, dispatch]); // FIX: Added 'dispatch' dependency
 
   if (profileLoading || authLoading) {
     return (
