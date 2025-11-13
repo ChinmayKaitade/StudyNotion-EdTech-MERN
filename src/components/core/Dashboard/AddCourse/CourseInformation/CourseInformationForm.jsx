@@ -37,27 +37,40 @@ export default function CourseInformationForm() {
       setLoading(true);
       const categories = await fetchCourseCategories();
       if (categories.length > 0) {
-        // console.log("categories", categories)
         setCourseCategories(categories);
       }
       setLoading(false);
     };
-    // if form is in edit mode
-    // It will add value in input field
+
+    // If form is in edit mode, initialize input fields
     if (editCourse) {
-      // console.log("editCourse ", editCourse)
+      // Note: We use course.category._id for the select field value
       setValue("courseTitle", course.courseName);
       setValue("courseShortDesc", course.courseDescription);
       setValue("coursePrice", course.price);
       setValue("courseTags", course.tag);
       setValue("courseBenefits", course.whatYouWillLearn);
-      setValue("courseCategory", course.category);
+      setValue("courseCategory", course.category._id);
       setValue("courseRequirements", course.instructions);
       setValue("courseImage", course.thumbnail);
     }
 
     getCategories();
-  }, []);
+  }, [
+    editCourse,
+    setValue,
+    // Dependencies for initialization: all course properties used in setValue calls
+    course?.courseName,
+    course?.courseDescription,
+    course?.price,
+    course?.tag,
+    course?.whatYouWillLearn,
+    course?.category?._id,
+    course?.instructions,
+    course?.thumbnail,
+  ]);
+
+  // ... rest of the component remains the same
 
   const isFormUpdated = () => {
     const currentValues = getValues();
@@ -68,7 +81,7 @@ export default function CourseInformationForm() {
       currentValues.coursePrice !== course.price ||
       currentValues.courseTags.toString() !== course.tag.toString() ||
       currentValues.courseBenefits !== course.whatYouWillLearn ||
-      currentValues.courseCategory._id !== course.category._id ||
+      currentValues.courseCategory !== course.category._id || // Changed to compare ID
       currentValues.courseRequirements.toString() !==
         course.instructions.toString() ||
       currentValues.courseImage !== course.thumbnail
@@ -78,7 +91,7 @@ export default function CourseInformationForm() {
     return false;
   };
 
-  //   handle next button click
+  //   handle next button click
   const onSubmit = async (data) => {
     // console.log(data)
 
@@ -108,7 +121,7 @@ export default function CourseInformationForm() {
         if (currentValues.courseBenefits !== course.whatYouWillLearn) {
           formData.append("whatYouWillLearn", data.courseBenefits);
         }
-        if (currentValues.courseCategory._id !== course.category._id) {
+        if (currentValues.courseCategory !== course.category._id) {
           formData.append("category", data.courseCategory);
         }
         if (
