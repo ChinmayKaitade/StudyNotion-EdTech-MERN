@@ -20,7 +20,7 @@ function CourseDetailsCard({ course, setConfirmationModal, handleBuyCourse }) {
   const {
     thumbnail: ThumbnailImage,
     price: CurrentPrice,
-    _id: courseId,
+    // Removed: _id: courseId, // 'courseId' was unused
   } = course;
 
   const handleShare = () => {
@@ -46,8 +46,6 @@ function CourseDetailsCard({ course, setConfirmationModal, handleBuyCourse }) {
       btn2Handler: () => setConfirmationModal(null),
     });
   };
-
-  // console.log("Student already enrolled ", course?.studentsEnroled, user?._id)
 
   return (
     <>
