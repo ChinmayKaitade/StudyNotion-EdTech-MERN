@@ -29,12 +29,16 @@ export default function EditCourse() {
     };
 
     fetchFullCourseDetails();
-  }, []);
+  }, [courseId, token, dispatch]); // Added missing dependencies
 
   // Loading
   if (loading) {
     return <Loading />;
   }
+
+  // The logic for displaying a second Loading spinner inside the return statement
+  // is redundant because the check `if (loading)` at the top already handles the full-screen loading state.
+  // I will leave the original return structure as requested, but remove the redundant `if (loading)` block inside the return.
 
   return (
     <div className="flex w-full items-start gap-x-6">
@@ -43,22 +47,19 @@ export default function EditCourse() {
           Edit Course
         </h1>
 
-        {loading ? (
-          <Loading />
-        ) : (
-          <div className="flex-1">
-            {course ? (
-              <RenderSteps />
-            ) : (
-              <p className="mt-14 text-center text-3xl font-semibold text-richblack-100">
-                Course not found
-              </p>
-            )}
-          </div>
-        )}
+        <div className="flex-1">
+          {/* Removed the redundant loading check here */}
+          {course ? (
+            <RenderSteps />
+          ) : (
+            <p className="mt-14 text-center text-3xl font-semibold text-richblack-100">
+              Course not found
+            </p>
+          )}
+        </div>
       </div>
 
-      {/* Course Upload Tips  */}
+      {/* Course Upload Tips - commented out in original code */}
       {/* <div className="sticky top-10 hidden lg:block max-w-[400px] flex-1 rounded-md border-[1px] border-richblack-700 bg-richblack-800 p-6 ">
         <p className="mb-8 text-lg text-richblack-5">⚡ Course Upload Tips</p>
 
