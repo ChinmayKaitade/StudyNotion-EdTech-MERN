@@ -77,7 +77,13 @@ const Navbar = () => {
       <div className="flex w-11/12 max-w-maxContent items-center justify-between ">
         {/* logo */}
         <Link to="/">
-          <img src={studyNotionLogo} width={160} height={42} loading="lazy" />
+          <img
+            src={studyNotionLogo}
+            alt="StudyNotion Logo"
+            width={160}
+            height={42}
+            loading="lazy"
+          />
         </Link>
 
         {/* Nav Links - visible for only large devices*/}
