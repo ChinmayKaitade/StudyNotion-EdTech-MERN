@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react"; // Removed useEffect
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -12,7 +12,7 @@ import { AiOutlineCaretDown, AiOutlineHome } from "react-icons/ai";
 import { MdOutlineContactPhone } from "react-icons/md";
 import { TbMessage2Plus } from "react-icons/tb";
 import { PiNotebook } from "react-icons/pi";
-import { fetchCourseCategories } from "../../../services/operations/courseDetailsAPI";
+// Removed: import { fetchCourseCategories } from "../../../services/operations/courseDetailsAPI";
 
 export default function MobileProfileDropDown() {
   // ✅ Always call hooks at the top level
@@ -22,32 +22,18 @@ export default function MobileProfileDropDown() {
   const ref = useRef(null);
 
   const [open, setOpen] = useState(false);
-  const [subLinks, setSubLinks] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // Removed: const [subLinks, setSubLinks] = useState([]);
+  // Removed: const [loading, setLoading] = useState(false);
 
   useOnClickOutside(ref, () => setOpen(false));
 
-  // Fetch categories
-  useEffect(() => {
-    const fetchSublinks = async () => {
-      try {
-        setLoading(true);
-        const res = await fetchCourseCategories();
-        setSubLinks(res);
-      } catch (error) {
-        console.log("Could not fetch category list:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSublinks();
-  }, []);
+  // Removed: useEffect hook for fetching categories (since it's not used)
 
   // ✅ Return early after hooks, not before
   if (!user) return null;
 
   return (
+    // Note: The click handler is on the button, setting 'open' to true
     <button className="relative sm:hidden" onClick={() => setOpen(true)}>
       <div className="flex items-center gap-x-1">
         <Img
@@ -60,10 +46,12 @@ export default function MobileProfileDropDown() {
 
       {open && (
         <div
+          // Prevents the outer button's onClick from firing when clicking inside the dropdown
           onClick={(e) => e.stopPropagation()}
           className="absolute min-w-[120px] top-[118%] right-0 z-[1000] divide-y-[1px] divide-richblack-700 overflow-hidden rounded-lg border-[1px] border-richblack-700 bg-richblack-800"
-          ref={ref}
+          ref={ref} // For useOnClickOutside hook
         >
+          {/* Dashboard Link */}
           <Link to="/dashboard/my-profile" onClick={() => setOpen(false)}>
             <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100">
               <VscDashboard className="text-lg" />
@@ -71,6 +59,7 @@ export default function MobileProfileDropDown() {
             </div>
           </Link>
 
+          {/* Home Link */}
           <Link to="/" onClick={() => setOpen(false)}>
             <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100 border-y border-richblack-700">
               <AiOutlineHome className="text-lg" />
@@ -78,6 +67,7 @@ export default function MobileProfileDropDown() {
             </div>
           </Link>
 
+          {/* Catalog Link */}
           <Link to="/" onClick={() => setOpen(false)}>
             <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100">
               <PiNotebook className="text-lg" />
@@ -85,6 +75,7 @@ export default function MobileProfileDropDown() {
             </div>
           </Link>
 
+          {/* About Us Link */}
           <Link to="/about" onClick={() => setOpen(false)}>
             <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100 border-y border-richblack-700">
               <TbMessage2Plus className="text-lg" />
@@ -92,6 +83,7 @@ export default function MobileProfileDropDown() {
             </div>
           </Link>
 
+          {/* Contact Us Link */}
           <Link to="/contact" onClick={() => setOpen(false)}>
             <div className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100">
               <MdOutlineContactPhone className="text-lg" />
@@ -99,12 +91,13 @@ export default function MobileProfileDropDown() {
             </div>
           </Link>
 
+          {/* Logout Button */}
           <div
             onClick={() => {
               dispatch(logout(navigate));
-              setOpen(false);
+              setOpen(false); // Close dropdown after action
             }}
-            className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100"
+            className="flex w-full items-center gap-x-1 py-[10px] px-[12px] text-sm text-richblack-100 cursor-pointer"
           >
             <VscSignOut className="text-lg" />
             Logout
