@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch } from "react-redux"; // useDispatch used here
 
 import HighlightText from "../components/core/HomePage/HighlightText";
 import CTAButton from "../components/core/HomePage/Button";
@@ -57,8 +57,6 @@ const Home = () => {
     setBackgroundImg(bg);
   }, []);
 
-  // console.log('bg ==== ', backgroundImg)
-
   // get courses data
   const [CatalogPageData, setCatalogPageData] = useState(null);
   const categoryID = "6910be0c612c696285c05402"; // hard coded
@@ -66,16 +64,14 @@ const Home = () => {
 
   useEffect(() => {
     const fetchCatalogPageData = async () => {
+      // Uses dispatch
       const result = await getCatalogPageData(categoryID, dispatch);
       setCatalogPageData(result);
-      // console.log("page data ==== ",CatalogPageData);
     };
     if (categoryID) {
       fetchCatalogPageData();
     }
-  }, [categoryID]);
-
-  // console.log('================ CatalogPageData?.selectedCourses ================ ', CatalogPageData)
+  }, [categoryID, dispatch]); // FIX: Added 'dispatch' dependency
 
   return (
     <React.Fragment>
@@ -84,7 +80,7 @@ const Home = () => {
         <div className="w-full h-[450px] md:h-[650px] absolute top-0 left-0 opacity-[0.3] overflow-hidden object-cover ">
           <img
             src={backgroundImg}
-            alt="Background"
+            alt="Background coding pattern"
             className="w-full h-full object-cover "
           />
 
@@ -93,16 +89,16 @@ const Home = () => {
       </div>
 
       <div className=" ">
-        {/*Section1  */}
+        {/*Section1  */}
         <div className="relative h-[450px] md:h-[550px] justify-center mx-auto flex flex-col w-11/12 max-w-maxContent items-center text-white ">
           <Link to={"/signup"}>
             <div
               className="z-0 group p-1 mx-auto rounded-full bg-richblack-800 font-bold text-richblack-200
-                                        transition-all duration-200 hover:scale-95 w-fit"
+                                        transition-all duration-200 hover:scale-95 w-fit"
             >
               <div
                 className="flex flex-row items-center gap-2 rounded-full px-10 py-[5px]
-                              transition-all duration-200 group-hover:bg-richblack-900"
+                              transition-all duration-200 group-hover:bg-richblack-900"
               >
                 <p>Become an Instructor</p>
                 <FaArrowRight />
@@ -115,7 +111,7 @@ const Home = () => {
             initial="hidden"
             whileInView={"show"}
             viewport={{ once: false, amount: 0.1 }}
-            className="text-center text-3xl lg:text-4xl font-semibold mt-7  "
+            className="text-center text-3xl lg:text-4xl font-semibold mt-7  "
           >
             Empower Your Future with
             <HighlightText text={"Coding Skills"} />
@@ -225,7 +221,7 @@ const Home = () => {
           <ExploreMore />
         </div>
 
-        {/*Section 2  */}
+        {/*Section 2  */}
         <div className="bg-pure-greys-5 text-richblack-700 ">
           <div className="homepage_bg h-[310px]">
             <div className="w-11/12 max-w-maxContent flex flex-col items-center justify-between gap-5 mx-auto">
