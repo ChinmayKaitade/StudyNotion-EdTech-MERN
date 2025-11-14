@@ -19,6 +19,8 @@ export default function ViewCourse() {
   const { token } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [reviewModal, setReviewModal] = useState(false);
+  const { courseViewSidebar } = useSelector((state) => state.sidebar);
+  const [screenSize, setScreenSize] = useState(undefined); // Initial state set to undefined
 
   // get Full Details Of Course
   useEffect(() => {
@@ -34,27 +36,30 @@ export default function ViewCourse() {
       });
       dispatch(setTotalNoOfLectures(lectures));
     })();
-  }, []);
+  }, [courseId, token, dispatch]); // FIX: Added missing dependencies
 
-  // handle sidebar for small devices
-  const { courseViewSidebar } = useSelector((state) => state.sidebar);
-  const [screenSize, setScreenSize] = useState(undefined);
-
-  // set curr screen Size
+  // set curr screen Size listener (should run only once on mount)
   useEffect(() => {
     const handleScreenSize = () => setScreenSize(window.innerWidth);
 
     window.addEventListener("resize", handleScreenSize);
-    handleScreenSize();
+    handleScreenSize(); // Call initially to set size
+
+    // Cleanup function to remove the listener
     return () => window.removeEventListener("resize", handleScreenSize);
-  });
+  }, []); // FIX: Added empty dependency array for listener setup
 
   // close / open sidebar according screen size
   useEffect(() => {
-    if (screenSize <= 640) {
-      dispatch(setCourseViewSidebar(false));
-    } else dispatch(setCourseViewSidebar(true));
-  }, [screenSize]);
+    // 640px is the default breakpoint for 'sm' in Tailwind CSS
+    if (screenSize !== undefined) {
+      if (screenSize <= 640) {
+        dispatch(setCourseViewSidebar(false));
+      } else {
+        dispatch(setCourseViewSidebar(true));
+      }
+    }
+  }, [screenSize, dispatch]); // FIX: Added missing 'dispatch' dependency
 
   return (
     <>

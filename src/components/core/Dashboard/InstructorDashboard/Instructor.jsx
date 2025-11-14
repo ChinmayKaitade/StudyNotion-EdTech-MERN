@@ -28,7 +28,7 @@ export default function Instructor() {
       }
       setLoading(false);
     })();
-  }, []);
+  }, [token]); // FIX: Added 'token' as a dependency
 
   const totalAmount = instructorData?.reduce(
     (acc, curr) => acc + curr.totalAmountGenerated,
@@ -43,7 +43,7 @@ export default function Instructor() {
   // skeleton loading
   const skItem = () => {
     return (
-      <div className="mt-5 w-full flex flex-col justify-between  rounded-xl ">
+      <div className="mt-5 w-full flex flex-col justify-between  rounded-xl ">
         <div className="flex border p-4 border-richblack-600 ">
           <div className="w-full">
             <p className="w-[100px] h-4 rounded-xl skeleton"></p>
@@ -55,7 +55,7 @@ export default function Instructor() {
             <div className="flex justify-center items-center flex-col">
               <div className="w-[80%] h-24 rounded-xl mt-5 skeleton"></div>
               {/* circle */}
-              <div className="w-60 h-60 rounded-full  mt-4 grid place-items-center skeleton"></div>
+              <div className="w-60 h-60 rounded-full  mt-4 grid place-items-center skeleton"></div>
             </div>
           </div>
           {/* right column */}
@@ -63,7 +63,7 @@ export default function Instructor() {
         </div>
 
         {/* bottom row */}
-        <div className="flex flex-col gap-y-6  mt-5">
+        <div className="flex flex-col gap-y-6  mt-5">
           <div className="flex justify-between">
             <p className="text-lg font-bold text-richblack-5 pl-5">
               Your Courses
@@ -75,10 +75,10 @@ export default function Instructor() {
             </Link>
           </div>
 
-          <div className="flex flex-col sm:flex-row  gap-6 ">
-            <p className=" h-[201px] w-full rounded-xl  skeleton"></p>
-            <p className=" h-[201px] w-full rounded-xl  skeleton"></p>
-            <p className=" h-[201px] w-full rounded-xl  skeleton"></p>
+          <div className="flex flex-col sm:flex-row  gap-6 ">
+            <p className=" h-[201px] w-full rounded-xl  skeleton"></p>
+            <p className=" h-[201px] w-full rounded-xl  skeleton"></p>
+            <p className=" h-[201px] w-full rounded-xl  skeleton"></p>
           </div>
         </div>
       </div>

@@ -22,11 +22,14 @@ exports.courseEnrollmentEmail = (courseName, name) => {
                 margin: 0 auto;
                 padding: 20px;
                 text-align: center;
+                background-color: #f9f9f9;
             }
     
             .logo {
                 max-width: 200px;
                 margin-bottom: 20px;
+                 background-color: #ffdf3f;
+                 padding: 7px;
             }
     
             .message {
@@ -38,6 +41,8 @@ exports.courseEnrollmentEmail = (courseName, name) => {
             .body {
                 font-size: 16px;
                 margin-bottom: 20px;
+                background-color: #ffffff;
+                padding: 12px;
             }
     
             .cta {
@@ -76,7 +81,7 @@ exports.courseEnrollmentEmail = (courseName, name) => {
                     are excited to have you as a participant!</p>
                 <p>Please log in to your learning dashboard to access the course materials and start your learning journey.
                 </p>
-                <a class="cta" href="https://github.com/ChinmayKaitade/">Go to Dashboard</a>
+                <a class="cta" href="/dashboard/enrolled-courses">Go to Dashboard</a>
             </div>
             <div class="support">If you have any questions or need assistance, please feel free to reach out to us at 
             <a href="mailto:chinmaykaitade123@gmail.com">chinmaykaitade123@gmail.com</a>. We are here to help!</div>

@@ -33,11 +33,14 @@ exports.paymentSuccess = (amount, paymentId, orderId, name, lastname) => {
                     margin: 0 auto;
                     padding: 20px;
                     text-align: center;
+    background-color: #f9f9f9;
                 }
         
                 .logo {
                     max-width: 200px;
                     margin-bottom: 20px;
+    background-color: #ffffff;
+        padding: 12px;
                 }
         
                 .message {
@@ -49,7 +52,13 @@ exports.paymentSuccess = (amount, paymentId, orderId, name, lastname) => {
                 .body {
                     font-size: 16px;
                     margin-bottom: 20px;
+    background-color: #ffffff;
+        padding: 12px;
                 }
+
+     .user {
+        font-weight: bold;
+      }
         
                 .cta {
                     display: inline-block;
@@ -84,7 +93,7 @@ exports.paymentSuccess = (amount, paymentId, orderId, name, lastname) => {
                 Your payment of ₹${amount} has been successfully received.
                 </div>
                 <div class="body">
-                    <p>Dear ${name} ${lastname},</p>
+                    <p class="user">Dear ${name} ${lastname},</p>
                     <p>
                         Thank you for purchasing the course. Your payment of ₹${amount} has been successfully received.
                     </p>

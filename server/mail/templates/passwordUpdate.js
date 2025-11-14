@@ -22,11 +22,14 @@ exports.passwordUpdated = (email, name) => {
                   margin: 0 auto;
                   padding: 20px;
                   text-align: center;
+                  background-color: #f9f9f9;
               }
       
               .logo {
                   max-width: 200px;
                   margin-bottom: 20px;
+                  background-color: #ffdf3f;
+                  padding: 7px;
               }
       
               .message {
@@ -39,6 +42,11 @@ exports.passwordUpdated = (email, name) => {
                   font-size: 16px;
                   margin-bottom: 20px;
               }
+
+               .user {
+                font-weight: bold;
+             }
+
       
               .support {
                   font-size: 14px;
@@ -59,7 +67,7 @@ exports.passwordUpdated = (email, name) => {
                       src="https://i.ibb.co/ds6RzBPq/Study-Notion-Dark.png" alt="StudyNotion Logo"></a>
               <div class="message">Password Update Confirmation</div>
               <div class="body">
-                  <p>Hey ${name},</p>
+                  <p class="user">Hey ${name},</p>
                   <p>Your password has been successfully updated for the email <span class="highlight">${email}</span>.
                   </p>
                   <p>If you did not request this password change, please contact us immediately to secure your account.</p>
