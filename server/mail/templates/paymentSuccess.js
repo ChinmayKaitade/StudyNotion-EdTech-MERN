@@ -87,7 +87,7 @@ exports.paymentSuccess = (amount, paymentId, orderId, name, lastname) => {
         
         <body>
             <div class="container">
-                <a href="https://github.com/ChinmayKaitade/"><img class="logo" src="https://i.ibb.co/ds6RzBPq/Study-Notion-Dark.png"
+                <a href="https://studynotion-edtech-mern.vercel.app/"><img class="logo" src="https://i.ibb.co/ds6RzBPq/Study-Notion-Dark.png"
                         alt="StudyNotion Logo"></a>
                 <div class="message">
                 Your payment of ₹${amount} has been successfully received.

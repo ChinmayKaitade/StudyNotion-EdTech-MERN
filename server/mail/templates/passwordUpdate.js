@@ -63,7 +63,7 @@ exports.passwordUpdated = (email, name) => {
       
       <body>
           <div class="container">
-              <a href="https://github.com/ChinmayKaitade/"><img class="logo"
+              <a href="https://studynotion-edtech-mern.vercel.app/"><img class="logo"
                       src="https://i.ibb.co/ds6RzBPq/Study-Notion-Dark.png" alt="StudyNotion Logo"></a>
               <div class="message">Password Update Confirmation</div>
               <div class="body">

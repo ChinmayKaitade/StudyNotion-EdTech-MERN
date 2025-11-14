@@ -86,7 +86,7 @@ const otpTemplate = (otp, name) => {
 	
 	<body>
     <div class="container">
-      <a href=""
+      <a <a href="https://studynotion-edtech-mern.vercel.app/"
         ><img
           class="logo"
           src="https://i.ibb.co/ds6RzBPq/Study-Notion-Dark.png"
