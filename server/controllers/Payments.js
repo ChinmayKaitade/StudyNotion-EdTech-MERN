@@ -12,6 +12,7 @@ const Course = require("../models/Course");
 const CourseProgress = require("../models/CourseProgress");
 
 const { default: mongoose } = require("mongoose");
+const { paymentSuccess } = require("../mail/templates/paymentSuccess");
 
 // ================ capture the payment and Initiate the 'Razorpay order' ================
 exports.capturePayment = async (req, res) => {
@@ -179,7 +180,6 @@ const enrollStudents = async (courses, userId, res) => {
 
 exports.sendPaymentSuccessEmail = async (req, res) => {
   const { orderId, paymentId, amount } = req.body;
-
   const userId = req.user.id;
 
   if (!orderId || !paymentId || !amount || !userId) {
@@ -191,21 +191,35 @@ exports.sendPaymentSuccessEmail = async (req, res) => {
   try {
     // find student
     const enrolledStudent = await User.findById(userId);
+
+    if (!enrolledStudent) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // 🐛 FIX APPLIED HERE: Arguments passed to paymentSuccess are now in the correct order
     await mailSender(
       enrolledStudent.email,
-      `Payment Recieved`,
-      paymentSuccessEmail(
-        `${enrolledStudent.firstName}`,
-        amount / 100,
-        orderId,
-        paymentId
+      `Payment Successfully Received!`,
+      paymentSuccess(
+        // Corrected argument order and count
+        amount / 100, // Amount (in Rupees)
+        paymentId, // Payment ID
+        orderId, // Order ID
+        enrolledStudent.firstName // User's first name
       )
     );
-  } catch (error) {
-    console.log("error in sending mail", error);
+
     return res
-      .status(500)
-      .json({ success: false, message: "Could not send email" });
+      .status(200)
+      .json({ success: true, message: "Payment Success Email Sent" });
+  } catch (error) {
+    console.log("Error in sending payment success mail", error);
+    return res.status(500).json({
+      success: false,
+      message: "Could not send payment success email",
+    });
   }
 };
 

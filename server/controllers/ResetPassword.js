@@ -30,7 +30,7 @@ exports.resetPasswordToken = async (req, res) => {
     ); // by marking true, it will return updated user
 
     // create url
-    const url = `https://study-notion-mern-stack.netlify.app/update-password/${token}`;
+    const url = `https://studynotion-edtech-mern.vercel.app/update-password/${token}`;
 
     // send email containing url
     await mailSender(
